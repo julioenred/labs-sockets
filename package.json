@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server/main.js"
+    "start": "nodemon server/main.js",
+    "local": "set NODE_ENV=local&& nodemon server/main.js",
+    "dev": "set NODE_ENV=dev&& nodemon server/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
   },

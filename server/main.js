@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+const config = require('./config.js');
 
 var messages = [{
     id: 1,
@@ -26,6 +27,6 @@ io.on('connection', function (socket) {
     });
 });
 
-server.listen(8888, function () {
+server.listen(config.PORT, function () {
     console.log("ON");
 })
