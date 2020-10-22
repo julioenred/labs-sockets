@@ -1,8 +1,8 @@
+require('dotenv').config();
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-const config = require('./config.js');
 
 var messages = [{
     id: 1,
@@ -27,6 +27,6 @@ io.on('connection', function (socket) {
     });
 });
 
-server.listen(config.PORT, function () {
-    console.log("Listen on: " + config.PORT);
+server.listen(process.env.PORT, function () {
+    console.log("Listen on: " + process.env.PORT);
 })
