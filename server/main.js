@@ -28,5 +28,5 @@ io.on('connection', function (socket) {
 });
 
 server.listen(config.PORT, function () {
-    console.log("ON");
+    console.log("Listen on: " + config.PORT);
 })
