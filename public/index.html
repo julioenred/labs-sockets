@@ -5,19 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App con Sockets</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script src="main.js"></script>
 </head>
 
-<body>
-    <h1>My App</h1>
-    <div id="messages"></div>
-    <br />
-    <form onsubmit="return addMessage(this)">
-        <input type="text" id="username">
-        <input type="text" id="texto">
-        <input type="submit" value="Enviar">
-    </form>
+<body onload="clean_local_storage()">
+    <div class="row">
+        <div class="column">
+            <h1>¿Quién Eres?</h1>
+            <div id="users"></div>
+            <br />
+
+            <h1>¿Con quien quieres hablar?</h1>
+            <div id="contacts"></div>
+
+            <h1>Conversaciones</h1>
+            <div id="groups"></div>
+            <br />
+            <form onsubmit="return addGroup(this)">
+                <input type="text" id="groupname">
+                <input type="submit" value="Crear">
+            </form>
+        </div>
+
+        <div class="column">
+            <h1>Conversacion</h1>
+            <div id="conversation"></div>
+            <br />
+            <form onsubmit="return addMessage()">
+                <input type="text" id="text">
+                <input type="submit" value="Enviar">
+            </form>
+        </div>
+    </div>
 </body>
 
 </html>
