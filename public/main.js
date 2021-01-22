@@ -2,6 +2,8 @@
 //     'foreceNew': true
 // });
 
+// https://gist.github.com/companje/b95e735650f1cd2e2a41 -> socket and img
+
 var socket = io.connect('http://localhost:8888', {
     'foreceNew': true
 });
@@ -78,7 +80,10 @@ function render_contacts(data) {
 function addGroup(e) {
     var payload = {
         groupname: document.getElementById('groupname').value,
+        users_id: [1, 2, 3]
     };
+
+    console.log(payload);
 
     socket.emit('new-group', payload);
     return false;

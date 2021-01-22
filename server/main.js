@@ -9,7 +9,7 @@ var con = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "root",
-    database: "chat"
+    database: "chat_v2"
 });
 
 app.use(express.static('public'));
@@ -68,11 +68,24 @@ function insert_message(message) {
 }
 
 function insert_group(group) {
+    insert_id = 0;
+    console.log(group);
     con.connect(function (err) {
-        var sql = `INSERT INTO groups (name) VALUES ('${group.groupname}')`;
+        var sql = `INSERT INTO conversations (name, is_group) VALUES ('${group.groupname}', 1)`;
         con.query(sql, function (err, result) {
+            insert_id = result.insertId
             console.log("1 record inserted");
+
+            group.users_id.map(function (user_id, index) {
+                var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                con.query(sql, function (err, result) {
+                    result.insertId
+                    console.log("1 record inserted");
+                });
+            }).join(" ");
         });
+
+
     });
 }
 
