@@ -31,7 +31,7 @@ io.on('connection', function (socket) {
 
         // async_get_messages();
 
-        con.query("SELECT * FROM groups", function (err, result, fields) {
+        con.query("SELECT * FROM conversations", function (err, result, fields) {
             socket.emit('groups', result);
         });
     });
@@ -102,17 +102,20 @@ async function async_get_messages(data, io) {
 }
 
 function get_messages(data) {
-    if (data.contact_id != null) {
-        var query = `SELECT * 
+
+    console.log(data);
+    var query = `SELECT 
+                    messages.id,
+                    messages.text,
+                    users.name as user_name
                     FROM messages 
-                    where (author_id=${data.author_id} and contact_id=${data.contact_id})
-                    or (author_id=${data.contact_id} and contact_id=${data.author_id})`;
-    } else {
-        var query = `SELECT * FROM messages where group_id=${data.group_id}`;
-    }
+                    INNER JOIN users on users.id = messages.user_id
+                    where conversation_id = ${data.conversation_id}`;
+
 
     return new Promise((resolve, reject) => {
         con.query(query, function (err, result, fields) {
+            console.log(err);
             resolve(result);
         });
     });

@@ -26,10 +26,11 @@ socket.on('groups', function (data) {
 });
 
 function render_messages(data) {
+    console.log(data);
     var html = data.map(function (elem, index) {
         return (
             `<div>
-                <strong>${elem.author}</strong>:
+                <strong>${elem.user_name}</strong>:
                 <em>${elem.text}</em>
             </div>`
         )
@@ -39,10 +40,11 @@ function render_messages(data) {
 }
 
 function render_groups(data) {
+    console.log(data);
     var html = data.map(function (elem, index) {
         return (
-            `<div id=group-${elem.id} class='group' onclick="set(${elem.id}, '${elem.name}', 'group')">
-                <strong>Grupo</strong>:
+            `<div id=conversation-${elem.id} class='group' onclick="set(${elem.id})">
+                <strong>Conversacion</strong>:
                 <em>${elem.name}</em>
             </div>`
         )
@@ -114,25 +116,22 @@ function addMessage(e) {
 
 function setConversation() {
     var payload = {
-        author_id: localStorage.getItem('user'),
-        contact_id: localStorage.getItem('contact'),
-        group_id: localStorage.getItem('group')
+        conversation_id: localStorage.getItem('conversation_id'),
     };
 
     socket.emit('show-conversation', payload);
     return false;
 }
 
-function set(id, name, type_user) {
-    localStorage.setItem(type_user, id);
-    localStorage.setItem(type_user + 'name', name);
+function set(conversation_id) {
+    localStorage.setItem('conversation_id', conversation_id);
 
-    var els = document.querySelectorAll('.' + type_user)
+    var els = document.querySelectorAll('.conversation-' + conversation_id)
     for (var i = 0; i < els.length; i++) {
         els[i].classList.remove('active')
     }
 
-    var element = document.getElementById(`${type_user}-${id}`);
+    var element = document.getElementById(`conversation-${conversation_id}`);
     element.classList.add("active");
 
     setConversation();
