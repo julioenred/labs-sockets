@@ -58,8 +58,8 @@ io.on('connection', function (socket) {
 
 function insert_message(message) {
     con.connect(function (err) {
-        var sql = `INSERT INTO messages (author_id, author, text, group_id, contact_id) 
-                    VALUES (${message.author_id}, '${message.author}', '${message.text}', ${message.group_id}, ${message.contact_id})`;
+        var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
+                    VALUES (${message.user_id}, '${message.conversation_id}', '${message.text}', 0, '${message.media_url}', ${message.type})`;
         con.query(sql, function (err, result) {
             console.log(err);
             console.log("1 record inserted");

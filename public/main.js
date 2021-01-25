@@ -92,23 +92,17 @@ function addGroup(e) {
 }
 
 function addMessage(e) {
-    author_id = localStorage.getItem('user');
-    author = localStorage.getItem('username');
-    text = document.getElementById('text').value;
-    group_id = localStorage.getItem('group');
-    contact_id = localStorage.getItem('contact');
-
-    if (contact_id != undefined && group_id != undefined) {
-        group_id = undefined;
-    }
 
     var payload = {
-        author_id: author_id,
-        author: author,
-        text: text,
-        group_id: group_id,
-        contact_id: contact_id
+        user_id: 1,
+        conversation_id: 1,
+        text: 'text',
+        state: 0,
+        media_url: '',
+        type: 3
     };
+
+    console.log(payload);
 
     socket.emit('new-message', payload);
     return false;
