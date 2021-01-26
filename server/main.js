@@ -30,10 +30,52 @@ io.on('connection', function (socket) {
         });
 
         // async_get_messages();
+    });
 
-        con.query("SELECT * FROM conversations", function (err, result, fields) {
-            socket.emit('groups', result);
+    socket.on('debug', function (data) {
+        // console.log(data.conversation_id);
+        console.log('entra');
+        var conversations_fetch = [];
+        var conversations_db = function (callback) {
+            var conversations_sql = `SELECT 
+                    messages.id,
+                    messages.user_id,
+                    messages.text as message,
+                    conversations.id as conversation_id,
+                    users.name as user_sender_name
+                    FROM conversations 
+                    INNER JOIN messages on conversations.id = messages.conversation_id
+                    INNER JOIN users on messages.user_id = users.id
+                    where users.id = '${data.conversation_id}'
+                    order by messages.id DESC;`;
+
+            con.query(conversations_sql, function (err, conversations, fields) {
+                for (var i = 0; i < conversations.length; i++) {
+                    conversations_fetch.push(conversations[i]);
+                }
+                callback(null, conversations_fetch);
+            });
+        }
+
+        conversations_db(function (err, conversations) {
+            conversations_formatted = []
+            for (let i = 0; i < conversations.length; i++) {
+                if (i == 0) {
+                    conversations_formatted.push(conversations[i]);
+                }
+
+                if ((i + 1 < conversations.length) && conversations[i].conversation_id != conversations[i + 1].conversation_id) {
+                    conversations_formatted.push(conversations[i + 1]);
+                }
+            }
+
+            socket.emit('groups', conversations_formatted);
+            // console.log(conversations_formatted);
         });
+    });
+
+    socket.on('show-conversation', function (data) {
+        async_get_messages(data, io);
     });
 
     socket.on('show-conversation', function (data) {

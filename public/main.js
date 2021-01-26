@@ -91,6 +91,17 @@ function addGroup(e) {
     return false;
 }
 
+function debug(e) {
+    var payload = {
+        conversation_id: document.getElementById('conversation_id').value
+    };
+
+    console.log(payload);
+
+    socket.emit('debug', payload);
+    return false;
+}
+
 function addMessage(e) {
 
     var payload = {
