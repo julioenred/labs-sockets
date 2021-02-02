@@ -30,12 +30,10 @@ io.on('connection', function (socket) {
             socket.emit('contacts', result);
         });
 
-        // io.sockets.emit('groups', 'test');
-
         // async_get_messages();
     });
 
-    socket.on('debug', function (data) {
+    socket.on('conversations-user', function (data) {
         // console.log(data.conversation_id);
         console.log('entra');
         var conversations_fetch = [];
@@ -49,7 +47,7 @@ io.on('connection', function (socket) {
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
-                    where users.id = '${data.conversation_id}'
+                    where users.id = '${data.user_id}'
                     order by messages.id DESC;`;
 
             con.query(conversations_sql, function (err, conversations, fields) {
@@ -72,13 +70,34 @@ io.on('connection', function (socket) {
                 }
             }
 
-            // console.log('conversations: ' + util.inspect(conversations_formatted, { showHidden: false, depth: null }));
-            // var string = JSON.stringify();
-            // var json = JSON.parse(string);
-            // console.log('>> json: ', json);
             console.log(conversations_formatted);
             io.emit('groups', conversations_formatted);
-            // console.log(conversations_formatted);
+        });
+    });
+
+    socket.on('conversation-user', function (data) {
+        // console.log(data.conversation_id);
+        console.log('entra');
+
+        var messages_sql = `SELECT 
+                    messages.id as message_id,
+                    messages.user_id,
+                    messages.text as message,
+                    users.name as user_name
+                    FROM messages 
+                    INNER JOIN conversations on conversations.id = messages.conversation_id
+                    INNER JOIN users on messages.user_id = users.id
+                    where conversations.id = '${data.conversation_id}'
+                    order by messages.id DESC;`;
+
+        con.query(messages_sql, function (err, messages, fields) {
+            var messages_fetch = [];
+            for (var i = 0; i < messages.length; i++) {
+                messages_fetch.push(messages[i]);
+            }
+
+            console.log(messages_fetch);
+            io.emit('messages', messages_fetch);
         });
     });
 

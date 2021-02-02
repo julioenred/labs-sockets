@@ -23,7 +23,10 @@ var socket = io.connect('http://localhost:8888', {
 
 socket.on('groups', function (data) {
     console.log('groups: ' + JSON.stringify(data));
-    // render_groups(data);
+});
+
+socket.on('messages', function (data) {
+    console.log('messages: ' + JSON.stringify(data));
 });
 
 function render_messages(data) {
@@ -92,16 +95,28 @@ function addGroup(e) {
     return false;
 }
 
-function debug() {
+function conversations() {
+    var payload = {
+        user_id: document.getElementById('user_id').value
+    };
+
+    console.log(payload);
+
+    socket.emit('conversations-user', payload);
+    return false;
+}
+
+function showConversation() {
     var payload = {
         conversation_id: document.getElementById('conversation_id').value
     };
 
     console.log(payload);
 
-    socket.emit('debug', payload);
+    socket.emit('conversation-user', payload);
     return false;
 }
+
 
 function addMessage(e) {
 
