@@ -72,7 +72,9 @@ io.on('connection', function (socket) {
             }
 
             console.log(conversations_formatted);
-            io.emit('groups-' + data.user_id, conversations_formatted);
+            var string = JSON.stringify(conversations_formatted);
+            var json = JSON.parse(string);
+            io.emit('groups-' + data.user_id, json);
         });
     });
 
