@@ -35,8 +35,8 @@ io.on('connection', function (socket) {
     });
 
     socket.on('conversations-user', function (data) {
-        // console.log(data.conversation_id);
         console.log('entra');
+        console.log(data);
         var conversations_fetch = [];
         var conversations_db = function (callback) {
             var conversations_sql = `SELECT 
