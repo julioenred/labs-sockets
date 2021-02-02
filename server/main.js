@@ -4,6 +4,7 @@ var mysql = require('mysql');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var util = require('util');
 
 var con = mysql.createConnection({
     host: "localhost",
@@ -28,6 +29,8 @@ io.on('connection', function (socket) {
         con.query("SELECT * FROM users", function (err, result, fields) {
             socket.emit('contacts', result);
         });
+
+        // io.sockets.emit('groups', 'test');
 
         // async_get_messages();
     });
@@ -69,7 +72,12 @@ io.on('connection', function (socket) {
                 }
             }
 
-            socket.emit('groups', conversations_formatted);
+            // console.log('conversations: ' + util.inspect(conversations_formatted, { showHidden: false, depth: null }));
+            // var string = JSON.stringify();
+            // var json = JSON.parse(string);
+            // console.log('>> json: ', json);
+            console.log(conversations_formatted);
+            io.emit('groups', conversations_formatted);
             // console.log(conversations_formatted);
         });
     });

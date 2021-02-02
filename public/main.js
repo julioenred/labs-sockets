@@ -9,20 +9,21 @@ var socket = io.connect('http://localhost:8888', {
 });
 
 
-socket.on('users', function (data) {
-    render_users(data);
-});
+// socket.on('users', function (data) {
+//     render_users(data);
+// });
 
-socket.on('contacts', function (data) {
-    render_contacts(data);
-});
+// socket.on('contacts', function (data) {
+//     render_contacts(data);
+// });
 
-socket.on('conversation', function (data) {
-    render_messages(data);
-});
+// socket.on('conversation', function (data) {
+//     render_messages(data);
+// });
 
 socket.on('groups', function (data) {
-    render_groups(data);
+    console.log('groups: ' + JSON.stringify(data));
+    // render_groups(data);
 });
 
 function render_messages(data) {
@@ -91,7 +92,7 @@ function addGroup(e) {
     return false;
 }
 
-function debug(e) {
+function debug() {
     var payload = {
         conversation_id: document.getElementById('conversation_id').value
     };
