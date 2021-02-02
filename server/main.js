@@ -7,10 +7,10 @@ var io = require('socket.io')(server);
 var util = require('util');
 
 var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root",
-    database: "chat_v2"
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 app.use(express.static('public'));
@@ -22,7 +22,7 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
     console.log('alguien se conecto con sockets');
     con.connect(function (err) {
-        console.log(err);
+        // console.log(err);
         con.query("SELECT * FROM users", function (err, result, fields) {
             socket.emit('users', result);
         });
