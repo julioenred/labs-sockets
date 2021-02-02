@@ -22,6 +22,7 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
     console.log('alguien se conecto con sockets');
     con.connect(function (err) {
+        console.log(err);
         con.query("SELECT * FROM users", function (err, result, fields) {
             socket.emit('users', result);
         });
