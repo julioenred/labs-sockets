@@ -72,7 +72,7 @@ io.on('connection', function (socket) {
             }
 
             console.log(conversations_formatted);
-            io.emit('groups', conversations_formatted);
+            io.emit('groups-' + data.user_id, conversations_formatted);
         });
     });
 
@@ -98,7 +98,7 @@ io.on('connection', function (socket) {
             }
 
             console.log(messages_fetch);
-            io.emit('messages', messages_fetch);
+            io.emit('messages-' + data.conversation_id, messages_fetch);
         });
     });
 
@@ -129,7 +129,7 @@ io.on('connection', function (socket) {
 function insert_message(message) {
     con.connect(function (err) {
         var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
-                    VALUES (${message.user_id}, '${message.conversation_id}', '${message.text}', 0, '${message.media_url}', ${message.type})`;
+                    VALUES (${message.user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type})`;
         con.query(sql, function (err, result) {
             console.log(err);
             console.log("1 record inserted");
@@ -154,8 +154,6 @@ function insert_group(group) {
                 });
             }).join(" ");
         });
-
-
     });
 }
 
