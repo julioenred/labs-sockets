@@ -120,7 +120,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('new-conversation', function (group) {
-        // messages.push(group);
+        console.log(group);
         let conversation = new Conversation(mysql);
 
         var is_conversation_created = function (callback) {
