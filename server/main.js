@@ -5,6 +5,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var util = require('util');
+var Conversation = require('./conversation.js');
 
 var con = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -74,6 +75,7 @@ io.on('connection', function (socket) {
             console.log(conversations_formatted);
             var string = JSON.stringify(conversations_formatted);
             var json = JSON.parse(string);
+            console.log(json);
             io.emit('groups-' + data.user_id, json);
         });
     });
@@ -117,14 +119,20 @@ io.on('connection', function (socket) {
         setTimeout(function () { async_get_messages(data, io); }, 100);
     });
 
-    socket.on('new-group', function (data) {
+    socket.on('new-conversation', function (data) {
         // messages.push(data);
-        insert_group(data);
-        con.connect(function (err) {
-            con.query("SELECT * FROM groups", function (err, result, fields) {
-                io.sockets.emit('groups', result);
+        let conversation = new Conversation();
+
+        if (conversation.validate_individual_conversation(data)) {
+            conversation.insert_group(data);
+            con.connect(function (err) {
+                con.query("SELECT * FROM groups", function (err, result, fields) {
+                    io.sockets.emit('groups', result);
+                });
             });
-        });
+        }
+
+        io.sockets.emit('errors-' + data.creator_user_id, { error: true, message: 'params: incoherencia con los ids de los usuarios' });
     });
 });
 
@@ -135,26 +143,6 @@ function insert_message(message) {
         con.query(sql, function (err, result) {
             console.log(err);
             console.log("1 record inserted");
-        });
-    });
-}
-
-function insert_group(group) {
-    insert_id = 0;
-    console.log(group);
-    con.connect(function (err) {
-        var sql = `INSERT INTO conversations (name, is_group) VALUES ('${group.groupname}', 1)`;
-        con.query(sql, function (err, result) {
-            insert_id = result.insertId
-            console.log("1 record inserted");
-
-            group.users_id.map(function (user_id, index) {
-                var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
-                con.query(sql, function (err, result) {
-                    result.insertId
-                    console.log("1 record inserted");
-                });
-            }).join(" ");
         });
     });
 }
