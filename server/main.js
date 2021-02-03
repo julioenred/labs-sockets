@@ -119,22 +119,103 @@ io.on('connection', function (socket) {
         setTimeout(function () { async_get_messages(data, io); }, 100);
     });
 
-    socket.on('new-conversation', function (data) {
-        // messages.push(data);
-        let conversation = new Conversation();
+    socket.on('new-conversation', function (group) {
+        // messages.push(group);
+        let conversation = new Conversation(mysql);
 
-        if (conversation.validate_individual_conversation(data)) {
-            conversation.insert_group(data);
-            con.connect(function (err) {
-                con.query("SELECT * FROM groups", function (err, result, fields) {
-                    io.sockets.emit('groups', result);
-                });
+        var is_conversation_created = function (callback) {
+            var conversations_sql = `SELECT * FROM conversations where creator_user_id = '${group.users_id[0]}' and other_user_id = '${group.users_id[1]}'`;
+
+            con.query(conversations_sql, function (err, result, fields) {
+                console.log(result);
+                if (result.length != 0) {
+                    var response = true;
+                } else {
+                    var response = false;
+                }
+                callback(null, response);
             });
         }
 
-        io.sockets.emit('errors-' + data.creator_user_id, { error: true, message: 'params: incoherencia con los ids de los usuarios' });
+        var is_conversation_created_v2 = function (callback) {
+            var conversations_sql = `SELECT * FROM conversations where creator_user_id = '${group.users_id[1]}' and other_user_id = '${group.users_id[0]}'`;
+
+            con.query(conversations_sql, function (err, result, fields) {
+                console.log(result);
+                if (result.length != 0) {
+                    var response = true;
+                } else {
+                    var response = false;
+                }
+                callback(null, response);
+            });
+        }
+
+        if (conversation.validate_individual_conversation(group)) {
+            is_conversation_created(function (err, data) {
+                console.log(data);
+                if (!data) {
+                    is_conversation_created_v2(function (err, data) {
+                        console.log(data);
+                        if (!data) {
+                            console.log('conversacion creada');
+                            insert_group(group);
+                        }
+                    });
+                }
+            });
+        }
+
+        io.sockets.emit('errors-' + group.creator_user_id, { error: true, message: 'params: incoherencia con los ids de los usuarios' });
     });
 });
+
+function insert_group(group) {
+    insert_id = 0;
+    console.log(group);
+    if (group.is_group != 0) {
+        con.connect(function (err) {
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}')`;
+            con.query(sql, function (err, result) {
+                console.log(err);
+                insert_id = result.insertId
+                console.log("1 record inserted");
+
+                group.users_id.map(function (user_id, index) {
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    con.query(sql, function (err, result) {
+                        result.insertId
+                        console.log("1 record inserted");
+                    });
+                }).join(" ");
+            });
+        });
+    } else {
+        con.connect(function (err) {
+            for (let i = 0; i < group.users_id.length; i++) {
+                if (group.users_id[i] != group.creator_user_id) {
+                    var other_user_id = group.users_id[i];
+                }
+            }
+
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id, other_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}', '${other_user_id}')`;
+            con.query(sql, function (err, result) {
+                console.log(err);
+                insert_id = result.insertId
+                console.log("1 record inserted");
+
+                group.users_id.map(function (user_id, index) {
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    con.query(sql, function (err, result) {
+                        result.insertId
+                        console.log("1 record inserted");
+                    });
+                }).join(" ");
+            });
+        });
+    }
+
+}
 
 function insert_message(message) {
     con.connect(function (err) {
