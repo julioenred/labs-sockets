@@ -130,10 +130,13 @@ io.on('connection', function (socket) {
             con.query(conversations_sql, function (err, result, fields) {
                 console.log('is_conversation_created_query >>');
                 console.log(result);
+                let response = new Map();
                 if (result.length != 0) {
-                    var response = true;
+                    response.set("is_created", true);
+                    response.set("conversation_id", result[0].id);
                 } else {
-                    var response = false;
+                    response.set("is_created", false);
+                    response.set("conversation_id", 0);
                 }
                 callback(null, response);
             });
@@ -145,10 +148,13 @@ io.on('connection', function (socket) {
             con.query(conversations_sql, function (err, result, fields) {
                 console.log('is_conversation_created_v2_query >>');
                 console.log(result);
+                let response = new Map();
                 if (result.length != 0) {
-                    var response = true;
+                    response.set("is_created", true);
+                    response.set("conversation_id", result[0].id);
                 } else {
-                    var response = false;
+                    response.set("is_created", false);
+                    response.set("conversation_id", 0);
                 }
                 callback(null, response);
             });
@@ -158,23 +164,25 @@ io.on('connection', function (socket) {
             is_conversation_created(function (err, data) {
                 console.log('is_conversation_created_if >>');
                 console.log(data);
-                if (!data) {
+                if (!data.get('is_created')) {
                     is_conversation_created_v2(function (err, data) {
                         console.log('is_conversation_created_v2_id');
                         console.log(data);
-                        if (!data) {
+                        if (!data.get('is_created')) {
                             console.log('conversacion creada');
                             insert_group(group);
                         }
                     });
                 } else {
-                    console.log('errors >>');
-                    io.emit('errors-' + group.creator_user_id, { error: true, message: 'conversation: ya existe la conversación' });
+                    console.log('recovery-conversation-created-emit >>');
+                    console.log({ conversation_id: data.get('conversation_id') });
+                    io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
                 }
             });
         } else {
-            console.log('errors >>');
-            io.emit('errors-' + group.creator_user_id, { error: true, message: 'conversation: ya existe la conversación' });
+            console.log('recovery-conversation-created-emit >>');
+            console.log({ conversation_id: data.get('conversation_id') });
+            io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
         }
     });
 });
