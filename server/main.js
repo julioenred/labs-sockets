@@ -120,6 +120,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('new-conversation', function (group) {
+        console.log('params >>');
         console.log(group);
         let conversation = new Conversation(mysql);
 
@@ -127,6 +128,7 @@ io.on('connection', function (socket) {
             var conversations_sql = `SELECT * FROM conversations where creator_user_id = '${group.users_id[0]}' and other_user_id = '${group.users_id[1]}'`;
 
             con.query(conversations_sql, function (err, result, fields) {
+                console.log('is_conversation_created_query >>');
                 console.log(result);
                 if (result.length != 0) {
                     var response = true;
@@ -141,6 +143,7 @@ io.on('connection', function (socket) {
             var conversations_sql = `SELECT * FROM conversations where creator_user_id = '${group.users_id[1]}' and other_user_id = '${group.users_id[0]}'`;
 
             con.query(conversations_sql, function (err, result, fields) {
+                console.log('is_conversation_created_v2_query >>');
                 console.log(result);
                 if (result.length != 0) {
                     var response = true;
@@ -153,20 +156,25 @@ io.on('connection', function (socket) {
 
         if (conversation.validate_individual_conversation(group)) {
             is_conversation_created(function (err, data) {
+                console.log('is_conversation_created_if >>');
                 console.log(data);
                 if (!data) {
                     is_conversation_created_v2(function (err, data) {
+                        console.log('is_conversation_created_v2_id');
                         console.log(data);
                         if (!data) {
                             console.log('conversacion creada');
                             insert_group(group);
                         }
                     });
+                } else {
+                    console.log('errors >>');
+                    io.emit('errors-' + group.creator_user_id, { error: true, message: 'conversation: ya existe la conversación' });
                 }
             });
         } else {
             console.log('errors >>');
-            io.emit('errors-' + group.creator_user_id, { error: true, message: 'params: incoherencia con los ids de los usuarios' });
+            io.emit('errors-' + group.creator_user_id, { error: true, message: 'conversation: ya existe la conversación' });
         }
     });
 });
@@ -174,53 +182,59 @@ io.on('connection', function (socket) {
 function insert_group(group) {
     insert_id = 0;
     console.log('entra');
-    // if (group.is_group != 0) {
-    //     con.connect(function (err) {
-    //         var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}')`;
-    //         con.query(sql, function (err, result) {
-    //             console.log(err);
-    //             insert_id = result.insertId
-    //             console.log("1 record inserted");
+    if (group.is_group != 0) {
+        con.connect(function (err) {
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}')`;
+            con.query(sql, function (err, result) {
+                console.log('err >>');
+                console.log(err);
+                insert_id = result.insertId
+                console.log("1 record inserted");
 
-    //             group.users_id.map(function (user_id, index) {
-    //                 var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
-    //                 con.query(sql, function (err, result) {
-    //                     result.insertId
-    //                     console.log("1 record inserted");
-    //                 });
-    //             }).join(" ");
-    //         });
-    //     });
-    // } else {
-    //     con.connect(function (err) {
-    //         for (let i = 0; i < group.users_id.length; i++) {
-    //             if (group.users_id[i] != group.creator_user_id) {
-    //                 var other_user_id = group.users_id[i];
-    //             }
-    //         }
+                group.users_id.map(function (user_id, index) {
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    con.query(sql, function (err, result) {
+                        result.insertId
+                        console.log("1 record inserted");
+                    });
+                }).join(" ");
+            });
+        });
+    } else {
+        con.connect(function (err) {
+            for (let i = 0; i < group.users_id.length; i++) {
+                if (group.users_id[i] != group.creator_user_id) {
+                    var other_user_id = group.users_id[i];
+                }
+            }
 
-    //         var sql = `INSERT INTO conversations (name, is_group, creator_user_id, other_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}', '${other_user_id}')`;
-    //         con.query(sql, function (err, result) {
-    //             console.log(err);
-    //             insert_id = result.insertId
-    //             console.log("1 record inserted");
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id, other_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}', '${other_user_id}')`;
+            con.query(sql, function (err, result) {
+                console.log(err);
+                insert_id = result.insertId
+                console.log("conversation created id >>");
+                console.log(result.insertId);
 
-    //             group.users_id.map(function (user_id, index) {
-    //                 var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
-    //                 con.query(sql, function (err, result) {
-    //                     result.insertId
-    //                     console.log("1 record inserted");
-    //                 });
-    //             }).join(" ");
-    //         });
-    //     });
-    // }
-    console.log('users_id >>');
-    console.log(group.users_id);
-    group.users_id.map(function (user_id, index) {
-        var conversations_fetch = [];
-        var conversations_db = function (callback) {
-            var conversations_sql = `SELECT 
+                group.users_id.map(function (user_id, index) {
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    con.query(sql, function (err, result) {
+                        console.log("users_has_conversations id >>");
+                        console.log(result.insertId);
+                    });
+                }).join(" ");
+            });
+        });
+    }
+
+    setTimeout(() => {
+        console.log('set_timeout_conversation_created_id >>');
+        console.log(insert_id);
+        console.log('users_id >>');
+        console.log(group.users_id);
+        group.users_id.map(function (user_id, index) {
+            var conversations_fetch = [];
+            var conversations_db = function (callback) {
+                var conversations_sql = `SELECT 
                     messages.id,
                     messages.user_id,
                     messages.text as message,
@@ -232,34 +246,37 @@ function insert_group(group) {
                     where users.id = '${user_id}'
                     order by messages.id DESC;`;
 
-            con.query(conversations_sql, function (err, conversations, fields) {
-                for (var i = 0; i < conversations.length; i++) {
-                    conversations_fetch.push(conversations[i]);
-                }
-                callback(null, conversations_fetch);
-            });
-        }
-
-        conversations_db(function (err, conversations) {
-            conversations_formatted = []
-            for (let i = 0; i < conversations.length; i++) {
-                if (i == 0) {
-                    conversations_formatted.push(conversations[i]);
-                }
-
-                if ((i + 1 < conversations.length) && conversations[i].conversation_id != conversations[i + 1].conversation_id) {
-                    conversations_formatted.push(conversations[i + 1]);
-                }
+                con.query(conversations_sql, function (err, conversations, fields) {
+                    for (var i = 0; i < conversations.length; i++) {
+                        conversations_fetch.push(conversations[i]);
+                    }
+                    callback(null, conversations_fetch);
+                });
             }
 
-            // console.log(conversations_formatted);
-            var string = JSON.stringify(conversations_formatted);
-            var json = JSON.parse(string);
-            console.log('conversations-' + user_id + ' >>');
-            console.log(json);
-            io.emit('conversations-' + user_id, json);
-        });
-    }).join(" ");
+            conversations_db(function (err, conversations) {
+                conversations_formatted = []
+                for (let i = 0; i < conversations.length; i++) {
+                    if (i == 0) {
+                        conversations_formatted.push(conversations[i]);
+                    }
+
+                    if ((i + 1 < conversations.length) && conversations[i].conversation_id != conversations[i + 1].conversation_id) {
+                        conversations_formatted.push(conversations[i + 1]);
+                    }
+                }
+
+                // console.log(conversations_formatted);
+                var string = JSON.stringify(conversations_formatted);
+                var json = JSON.parse(string);
+                console.log('conversations-' + user_id + ' >>');
+                console.log(json);
+                io.emit('conversations-' + user_id, json);
+                io.emit('conversation-created-' + user_id, { conveersation_id: insert_id });
+            });
+        }).join(" ");
+    }, 300);
+
 }
 
 function insert_message(message) {
