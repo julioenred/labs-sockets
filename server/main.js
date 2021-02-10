@@ -263,9 +263,11 @@ function insert_group(group) {
 
 function insert_message(message) {
     con.connect(function (err) {
+
         insert_id = 0;
-        var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
-                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type})`;
+        var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
+                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type}, '${dt}')`;
         con.query(sql, function (err, result) {
             console.log("error >>");
             console.log(err);
