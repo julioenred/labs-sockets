@@ -87,7 +87,7 @@ io.on('connection', function (socket) {
         });
     });
 
-    socket.on('add-user-to-conversation', function (data) {
+    socket.on('add-users-to-conversation', function (data) {
         add_users_to_conversation(data)
     });
 
