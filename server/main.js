@@ -183,6 +183,23 @@ function insert_group(group) {
                         result.insertId
                         console.log("1 record inserted");
                     });
+
+                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
+                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0)`;
+                    con.query(sql, function (err, result) {
+                        console.log("insert_top_secret_message >>");
+                        console.log(err);
+                        console.log(result.insertId);
+
+                        var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
+                        VALUES (${user_id}, ${result.insertId}, 2)`;
+                        con.query(sql, function (err, result) {
+                            console.log("error >>");
+                            console.log(err);
+                            console.log("insert in read");
+
+                        });
+                    });
                 }).join(" ");
             });
         });
