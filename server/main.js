@@ -87,6 +87,10 @@ io.on('connection', function (socket) {
         });
     });
 
+    socket.on('add-user-to-conversation', function (data) {
+        add_users_to_conversation(data)
+    });
+
     socket.on('get-messages-conversation', function (data) {
         get_messages(data);
     });
@@ -304,6 +308,40 @@ function insert_group(group) {
 
 }
 
+function add_users_to_conversation(data) {
+    con.connect(function (err) {
+        console.log('add-users-to-converstaion params >>');
+        console.log(data);
+        for (let i = 0; i < data.users_id.length; i++) {
+            var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${data.users_id[i]}', '${data.conversation_id}', '0')`;
+            con.query(sql, function (err, result) {
+                console.log(err);
+
+                var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
+                VALUES (${data.users_id[i]}, '${data.conversation_id}', '-#top-secret#-', 0, '', 0)`;
+                con.query(sql, function (err, result) {
+                    console.log("insert_top_secret_message >>");
+                    console.log(err);
+                    console.log(result.insertId);
+
+                    var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
+                    VALUES (${data.users_id[i]}, ${result.insertId}, 2)`;
+                    con.query(sql, function (err, result) {
+                        console.log("error >>");
+                        console.log(err);
+                        console.log("insert in read");
+
+                    });
+                });
+
+            });
+
+        }
+        io.emit('users-added-to-conversation-' + data.conversation_id, { conversation_id: data.conversation_id });
+
+    });
+}
+
 function insert_message(message) {
     con.connect(function (err) {
 
@@ -364,6 +402,7 @@ function get_messages(data) {
 
             if (i == messages.length) {
                 messages[i - 1].is_read = is_read;
+                console.log(messages[i - 1]);
                 messages_formatted.push(messages[i - 1]);
                 is_read = READ;
             }
@@ -380,37 +419,6 @@ function get_messages(data) {
         console.log(messages_paged);
         io.emit('messages-conversation-' + data.conversation_id, messages_paged);
     });
-
-    // setTimeout(() => {
-    //     var messages_sql = `SELECT 
-    //                 messages.id as message_id,
-    //                 messages.user_id,
-    //                 messages.text as message,
-    //                 users.name as user_name
-    //                 FROM messages 
-    //                 INNER JOIN conversations on conversations.id = messages.conversation_id
-    //                 INNER JOIN users on messages.user_id = users.id
-    //                 where conversations.id = '${data.conversation_id}'
-    //                 order by messages.id DESC;`;
-
-    //     con.query(messages_sql, function (err, messages, fields) {
-    //         messages_fetch = [];
-    //         for (var i = data.offset; i < data.offset + data.limit; i++) {
-    //             if (i < messages.length) {
-
-    //                 get_is_read(messages[i]).then(function (message) {
-    //                     console.log(message);
-    //                     messages_fetch.push(message);
-    //                 });
-
-    //             }
-    //         }
-
-    //         console.log('messages_fetch >>');
-    //         console.log(messages_fetch);
-    //         io.emit('messages-conversation-' + data.conversation_id, messages_fetch);
-    //     });
-    // }, 100);
 }
 
 async function get_messages_query(data) {
@@ -431,32 +439,6 @@ async function get_messages_query(data) {
         con.query(messages_sql, function (err, messages, fields) {
             resolve(messages);
         });
-    })
-}
-
-async function get_is_read(messages) {
-    return new Promise(function (resolve, reject) {
-        for (let i = 0; i < messages.length; i++) {
-            var messages_sql = `SELECT 
-                        is_read
-                        FROM users_read_messages
-                        where users_read_messages.message_id = '${message.message_id}';`;
-
-            con.query(messages_sql, function (err, users_read_messages, fields) {
-                // console.log('err mess >>');
-                // console.log(err);
-                var is_read = 2;
-                // console.log(users_read_messages);
-                for (let i = 0; i < users_read_messages.length; i++) {
-                    if (users_read_messages[i].is_read == 0) {
-                        is_read = 1;
-                    }
-                }
-                message.is_read = is_read;
-                resolve(message);
-            });
-        }
-
     })
 }
 
