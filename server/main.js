@@ -43,21 +43,28 @@ io.on('connection', function (socket) {
         var conversations_db = function (callback) {
             var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
+                    users.id as user_id,
                     conversations.name as img,
                     users.name as user_name,
                     users.name as from_user,
                     conversations.name as group_name,
                     messages.text as message,
                     messages.date,
-                    conversations.name as is_read  
+                    users_has_conversations.is_read  
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
+                    INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
                     INNER JOIN users on messages.user_id = users.id
                     where users.id = '${data.user_id}'
                     order by messages.id DESC;`;
 
             con.query(conversations_sql, function (err, conversations, fields) {
                 for (var i = 0; i < conversations.length; i++) {
+                    if (conversations[i].user_id == data.user_id) {
+                        conversations[i].from_user = false;
+                    } else {
+                        conversations[i].from_user = true;
+                    }
                     conversations_fetch.push(conversations[i]);
                 }
                 callback(null, conversations_fetch);
@@ -375,6 +382,16 @@ function insert_message(message) {
                     });
                 }
             });
+
+            var sql = `UPDATE 
+                    users_has_conversations
+                    SET is_read=0
+                    where users_has_conversations.conversation_id = '${message.conversation_id}';`;
+            con.query(sql, function (err, result) {
+                console.log("error set read message >>");
+                console.log(err);
+                console.log("message not read");
+            });
         });
     });
 }
@@ -454,6 +471,27 @@ async function get_messages_query(data) {
 
                 messages[index] = message;
             });
+
+            if (typeof data.user_id_request !== 'undefined') {
+                user_id = data.user_id_request;
+            }
+
+            if (typeof data.creator_user_id !== 'undefined') {
+                user_id = data.creator_user_id;
+            }
+
+            var sql = `UPDATE 
+                    users_has_conversations
+                    SET is_read=1
+                    where users_has_conversations.conversation_id = '${data.conversation_id}' and 
+                    users_has_conversations.user_id = '${user_id}';`;
+            con.query(sql, function (err, result) {
+                console.log("error set read message >>");
+                console.log(err);
+                console.log("message read");
+            });
+
+
             resolve(messages);
         });
     })
