@@ -48,7 +48,8 @@ io.on('connection', function (socket) {
                     users.name as from_user,
                     conversations.name as group_name,
                     messages.text as message,
-                    messages.date 
+                    messages.date,
+                    conversations.name as is_read  
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
@@ -226,7 +227,8 @@ function insert_group(group) {
                     users.name as from_user,
                     conversations.name as group_name,
                     messages.text as message,
-                    messages.date 
+                    messages.date,
+                    conversations.name as is_read 
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
