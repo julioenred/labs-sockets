@@ -42,11 +42,13 @@ io.on('connection', function (socket) {
         var conversations_fetch = [];
         var conversations_db = function (callback) {
             var conversations_sql = `SELECT 
-                    messages.id,
-                    messages.user_id,
-                    messages.text as message,
                     conversations.id as conversation_id,
-                    users.name as user_sender_name
+                    conversations.name as img,
+                    users.name as user_name,
+                    users.name as from_user,
+                    conversations.name as group_name,
+                    messages.text as message,
+                    messages.date 
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
@@ -146,6 +148,7 @@ io.on('connection', function (socket) {
                             console.log('conversacion creada');
                             insert_group(group);
                         }
+                        io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
                     });
                 } else {
                     console.log('recovery-conversation-created-emit >>');
@@ -217,11 +220,13 @@ function insert_group(group) {
             var conversations_fetch = [];
             var conversations_db = function (callback) {
                 var conversations_sql = `SELECT 
-                    messages.id,
-                    messages.user_id,
-                    messages.text as message,
                     conversations.id as conversation_id,
-                    users.name as user_sender_name
+                    conversations.name as img,
+                    users.name as user_name,
+                    users.name as from_user,
+                    conversations.name as group_name,
+                    messages.text as message,
+                    messages.date 
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
@@ -253,8 +258,8 @@ function insert_group(group) {
                 var json = JSON.parse(string);
                 console.log('conversations-' + user_id + ' >>');
                 console.log(json);
-                io.emit('conversations-' + user_id, json);
-                io.emit('conversation-created-' + user_id, { conveersation_id: insert_id });
+                io.emit('conversations-user-id-' + user_id, json);
+                io.emit('conversation-created-user-id-' + user_id, { conveersation_id: insert_id });
             });
         }).join(" ");
     }, 300);
@@ -416,8 +421,6 @@ async function get_is_read(messages) {
 
     })
 }
-
-
 
 server.listen(process.env.PORT, function () {
     console.log("Listen on: " + process.env.PORT);
