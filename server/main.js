@@ -213,8 +213,19 @@ function insert_group(group) {
                     con.query(sql, function (err, result) {
                         console.log("insert_top_secret_message >>");
                         console.log(err);
-                        // console.log(result.insertId);
+                        console.log(result.insertId);
+
+                        var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
+                        VALUES (${user_id}, ${result.insertId}, 2)`;
+                        con.query(sql, function (err, result) {
+                            console.log("error >>");
+                            console.log(err);
+                            console.log("insert in read");
+
+                        });
                     });
+
+
                 }).join(" ");
             });
         });
