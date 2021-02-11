@@ -259,7 +259,7 @@ function insert_group(group) {
                 console.log('conversations-' + user_id + ' >>');
                 console.log(json);
                 io.emit('conversations-user-id-' + user_id, json);
-                io.emit('conversation-created-user-id-' + user_id, { conveersation_id: insert_id });
+                io.emit('conversation-created-user-id-' + user_id, { conversation_id: insert_id });
             });
         }).join(" ");
     }, 300);
