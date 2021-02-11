@@ -427,6 +427,11 @@ async function get_messages_query(data) {
                     messages.id as message_id,
                     messages.user_id,
                     messages.text as message,
+                    messages.date,
+                    messages.media_url,
+                    messages.type,
+                    messages.state,
+                    messages.state as from_user,
                     users.name as user_name,
                     users_read_messages.is_read
                     FROM messages 
@@ -437,6 +442,15 @@ async function get_messages_query(data) {
                     order by messages.id DESC;`;
 
         con.query(messages_sql, function (err, messages, fields) {
+            messages.map(function (message, index) {
+                if (message.user_id == data.user_id_request) {
+                    message.from_user = false
+                } else {
+                    message.from_user = true;
+                }
+
+                messages[index] = message;
+            });
             resolve(messages);
         });
     })
