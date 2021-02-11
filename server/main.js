@@ -380,45 +380,48 @@ function insert_message(message) {
 }
 
 function get_messages(data) {
-    get_messages_query(data).then(function (messages) {
-        const SENDED = 0;
-        const RECEIVED = 1;
-        const READ = 2;
+    setTimeout(() => {
+        get_messages_query(data).then(function (messages) {
+            const SENDED = 0;
+            const RECEIVED = 1;
+            const READ = 2;
 
-        messages_formatted = [];
-        console.log('messages >>');
-        console.log(messages);
-        is_read = READ;
-        for (i = 0; i <= messages.length; i++) {
-            if (messages[i + 1] != undefined && messages[i].is_read != READ) {
-                is_read = RECEIVED;
+            messages_formatted = [];
+            console.log('messages >>');
+            console.log(messages);
+            is_read = READ;
+            for (i = 0; i <= messages.length; i++) {
+                if (messages[i + 1] != undefined && messages[i].is_read != READ) {
+                    is_read = RECEIVED;
+                }
+
+                if (i < messages.length - 1 && messages[i].message_id != messages[i + 1].message_id) {
+                    messages[i].is_read = is_read;
+                    messages_formatted.push(messages[i]);
+                    is_read = READ;
+                }
+
+                if (i == messages.length) {
+                    messages[i - 1].is_read = is_read;
+                    console.log(messages[i - 1]);
+                    messages_formatted.push(messages[i - 1]);
+                    is_read = READ;
+                }
             }
 
-            if (i < messages.length - 1 && messages[i].message_id != messages[i + 1].message_id) {
-                messages[i].is_read = is_read;
-                messages_formatted.push(messages[i]);
-                is_read = READ;
+            messages_paged = [];
+            for (i = data.offset; i < data.offset + data.limit; i++) {
+                if (i < messages_formatted.length) {
+                    messages_paged.push(messages_formatted[i]);
+                }
             }
 
-            if (i == messages.length) {
-                messages[i - 1].is_read = is_read;
-                console.log(messages[i - 1]);
-                messages_formatted.push(messages[i - 1]);
-                is_read = READ;
-            }
-        }
+            console.log('messages_formatted >>');
+            console.log(messages_paged);
+            io.emit('messages-conversation-' + data.conversation_id, messages_paged);
+        });
+    }, 300);
 
-        messages_paged = [];
-        for (i = data.offset; i < data.offset + data.limit; i++) {
-            if (i < messages_formatted.length) {
-                messages_paged.push(messages_formatted[i]);
-            }
-        }
-
-        console.log('messages_formatted >>');
-        console.log(messages_paged);
-        io.emit('messages-conversation-' + data.conversation_id, messages_paged);
-    });
 }
 
 async function get_messages_query(data) {
