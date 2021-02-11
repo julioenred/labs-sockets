@@ -207,6 +207,14 @@ function insert_group(group) {
                         console.log("users_has_conversations id >>");
                         console.log(result.insertId);
                     });
+
+                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
+                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0)`;
+                    con.query(sql, function (err, result) {
+                        console.log("insert_top_secret_message >>");
+                        console.log(err);
+                        // console.log(result.insertId);
+                    });
                 }).join(" ");
             });
         });
@@ -258,7 +266,7 @@ function insert_group(group) {
                 // console.log(conversations_formatted);
                 var string = JSON.stringify(conversations_formatted);
                 var json = JSON.parse(string);
-                console.log('conversations-' + user_id + ' >>');
+                console.log('conversations-user-id-' + user_id + ' >>');
                 console.log(json);
                 io.emit('conversations-user-id-' + user_id, json);
                 io.emit('conversation-created-user-id-' + user_id, { conversation_id: insert_id });
