@@ -406,23 +406,23 @@ function get_messages(data) {
             messages_formatted = [];
             console.log('messages >>');
             console.log(messages);
-            is_read = READ;
+            state = READ;
             for (i = 0; i <= messages.length; i++) {
-                if (messages[i + 1] != undefined && messages[i].is_read != READ) {
-                    is_read = RECEIVED;
+                if (messages[i + 1] != undefined && messages[i].state != READ) {
+                    state = RECEIVED;
                 }
 
                 if (i < messages.length - 1 && messages[i].message_id != messages[i + 1].message_id) {
-                    messages[i].is_read = is_read;
+                    messages[i].state = state;
                     messages_formatted.push(messages[i]);
-                    is_read = READ;
+                    state = READ;
                 }
 
                 if (i == messages.length) {
-                    messages[i - 1].is_read = is_read;
+                    messages[i - 1].state = state;
                     console.log(messages[i - 1]);
                     messages_formatted.push(messages[i - 1]);
-                    is_read = READ;
+                    state = READ;
                 }
             }
 
@@ -453,7 +453,7 @@ async function get_messages_query(data) {
                     messages.state,
                     messages.state as from_user,
                     users.name as user_name,
-                    users_read_messages.is_read
+                    users_read_messages.is_read as state
                     FROM messages 
                     INNER JOIN conversations on conversations.id = messages.conversation_id
                     INNER JOIN users on messages.user_id = users.id
