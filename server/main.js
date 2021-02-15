@@ -181,7 +181,7 @@ function insert_group(group) {
     console.log('entra');
     if (group.is_group != 0) {
         con.connect(function (err) {
-            var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}')`;
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.group_name}', '${group.is_group}', '${group.creator_user_id}')`;
             con.query(sql, function (err, result) {
                 console.log('err >>');
                 console.log(err);
