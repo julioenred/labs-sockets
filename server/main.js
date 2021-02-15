@@ -195,8 +195,9 @@ function insert_group(group) {
                         console.log("1 record inserted");
                     });
 
+                    var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
                     var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
-                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0)`;
+                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', '${dt}')`;
                     con.query(sql, function (err, result) {
                         console.log("insert_top_secret_message >>");
                         console.log(err);
