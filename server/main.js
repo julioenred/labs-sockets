@@ -43,6 +43,7 @@ io.on('connection', function (socket) {
         var conversations_db = function (callback) {
             var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
+                    conversations.other_user_id,
                     users.id as user_id,
                     conversations.name as img,
                     users.name as user_name,
@@ -65,6 +66,7 @@ io.on('connection', function (socket) {
                     } else {
                         conversations[i].from_user = true;
                     }
+
                     conversations_fetch.push(conversations[i]);
                 }
                 callback(null, conversations_fetch);
