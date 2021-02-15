@@ -464,9 +464,9 @@ async function get_messages_query(data) {
         con.query(messages_sql, function (err, messages, fields) {
             messages.map(function (message, index) {
                 if (message.user_id == data.user_id_request) {
-                    message.from_user = false
+                    message.from_user = true
                 } else {
-                    message.from_user = true;
+                    message.from_user = false;
                 }
 
                 messages[index] = message;
