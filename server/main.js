@@ -272,6 +272,7 @@ function insert_group(group) {
             var conversations_db = function (callback) {
                 var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
+                    conversations.other_user_id,
                     conversations.name as img,
                     users.name as user_name,
                     users.name as from_user,
@@ -493,7 +494,6 @@ async function get_messages_query(data) {
                 console.log(err);
                 console.log("message read");
             });
-
 
             resolve(messages);
         });
