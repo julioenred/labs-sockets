@@ -413,6 +413,9 @@ function insert_message(message) {
 }
 
 function get_messages(data) {
+    console.log("users logged >>");
+    console.log(data.user_id);
+
     setTimeout(() => {
         get_messages_query(data).then(function (messages) {
             const SENDED = 0;
@@ -449,7 +452,7 @@ function get_messages(data) {
                 }
             }
 
-            console.log('messages_formatted >>');
+            console.log('messages-conversation-' + data.conversation_id + ' >>');
             console.log(messages_paged);
             io.emit('messages-conversation-' + data.conversation_id, messages_paged);
         });
