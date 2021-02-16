@@ -414,7 +414,8 @@ function insert_message(message) {
 
 function get_messages(data) {
     console.log("users logged >>");
-    console.log(data.user_id);
+    console.log(data.user_id_request);
+    console.log(data.creator_user_id);
 
     setTimeout(() => {
         get_messages_query(data).then(function (messages) {
