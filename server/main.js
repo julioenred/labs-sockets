@@ -465,16 +465,6 @@ async function get_messages_query(data) {
                     order by messages.id DESC;`;
 
         con.query(messages_sql, function (err, messages, fields) {
-            messages.map(function (message, index) {
-                if (message.user_id == data.user_id_request) {
-                    message.from_user = false
-                } else {
-                    message.from_user = true;
-                }
-
-                messages[index] = message;
-            });
-
             if (typeof data.user_id_request !== 'undefined') {
                 user_id = data.user_id_request;
             }
@@ -482,6 +472,16 @@ async function get_messages_query(data) {
             if (typeof data.creator_user_id !== 'undefined') {
                 user_id = data.creator_user_id;
             }
+
+            messages.map(function (message, index) {
+                if (message.user_id == user_id) {
+                    message.from_user = false
+                } else {
+                    message.from_user = true;
+                }
+
+                messages[index] = message;
+            });
 
             var sql = `UPDATE 
                     users_has_conversations
