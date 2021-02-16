@@ -25,11 +25,11 @@ io.on('connection', function (socket) {
     console.log('alguien se conecto con sockets');
     con.connect(function (err) {
         // console.log(err);
-        con.query("SELECT * FROM users", function (err, result, fields) {
+        con.query("SELECT * FROM jhi_user", function (err, result, fields) {
             socket.emit('users', result);
         });
 
-        con.query("SELECT * FROM users", function (err, result, fields) {
+        con.query("SELECT * FROM jhi_user", function (err, result, fields) {
             socket.emit('contacts', result);
         });
 
@@ -47,8 +47,8 @@ io.on('connection', function (socket) {
                     conversations.creator_user_id,
                     messages.user_id,
                     conversations.name as img,
-                    users.name as user_name,
-                    users.name as from_user,
+                    jhi_user.name as user_name,
+                    jhi_user.name as from_user,
                     conversations.name as group_name,
                     messages.text as message,
                     messages.date,
@@ -56,8 +56,8 @@ io.on('connection', function (socket) {
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
-                    INNER JOIN users on messages.user_id = users.id
-                    where users.id = '${data.user_id}'
+                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
+                    where jhi_user.id = '${data.user_id}'
                     order by messages.id DESC;`;
 
             con.query(conversations_sql, function (err, conversations, fields) {
@@ -281,16 +281,16 @@ function insert_group(group) {
                     conversations.creator_user_id,
                     messages.user_id,
                     conversations.name as img,
-                    users.name as user_name,
-                    users.name as from_user,
+                    jhi_user.name as user_name,
+                    jhi_user.name as from_user,
                     conversations.name as group_name,
                     messages.text as message,
                     messages.date,
                     conversations.name as is_read 
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
-                    INNER JOIN users on messages.user_id = users.id
-                    where users.id = '${user_id}'
+                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
+                    where jhi_user.id = '${user_id}'
                     order by messages.id DESC;`;
 
                 con.query(conversations_sql, function (err, conversations, fields) {
@@ -472,11 +472,11 @@ async function get_messages_query(data) {
                     messages.type,
                     messages.state,
                     messages.state as from_user,
-                    users.name as user_name,
+                    jhi_user.name as user_name,
                     users_read_messages.is_read as state
                     FROM messages 
                     INNER JOIN conversations on conversations.id = messages.conversation_id
-                    INNER JOIN users on messages.user_id = users.id
+                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
                     INNER JOIN users_read_messages on messages.id = users_read_messages.message_id
                     where conversations.id = '${data.conversation_id}'
                     order by messages.id DESC;`;
