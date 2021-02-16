@@ -44,7 +44,8 @@ io.on('connection', function (socket) {
             var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
                     conversations.other_user_id,
-                    users.id as user_id,
+                    conversations.creator_user_id,
+                    messages.user_id,
                     conversations.name as img,
                     users.name as user_name,
                     users.name as from_user,
@@ -60,11 +61,15 @@ io.on('connection', function (socket) {
                     order by messages.id DESC;`;
 
             con.query(conversations_sql, function (err, conversations, fields) {
+
                 for (var i = 0; i < conversations.length; i++) {
-                    if (conversations[i].user_id == data.user_id) {
-                        conversations[i].from_user = false;
-                    } else {
+                    if (conversations[i].creator_user_id != data.user_id) {
                         conversations[i].from_user = true;
+                        var user_id = conversations[i].user_id;
+                        conversations[i].user_id = conversations[i].other_user_id;
+                        conversations[i].other_user_id = user_id;
+                    } else {
+                        conversations[i].from_user = false;
                     }
 
                     conversations_fetch.push(conversations[i]);
@@ -273,6 +278,8 @@ function insert_group(group) {
                 var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
                     conversations.other_user_id,
+                    conversations.creator_user_id,
+                    messages.user_id,
                     conversations.name as img,
                     users.name as user_name,
                     users.name as from_user,
@@ -288,6 +295,11 @@ function insert_group(group) {
 
                 con.query(conversations_sql, function (err, conversations, fields) {
                     for (var i = 0; i < conversations.length; i++) {
+                        if (group.creator_user_id != conversations[i].creator_user_id) {
+                            var user_id = conversations[i].user_id;
+                            conversations[i].user_id = conversations[i].other_user_id;
+                            conversations[i].other_user_id = user_id;
+                        }
                         conversations_fetch.push(conversations[i]);
                     }
                     callback(null, conversations_fetch);
