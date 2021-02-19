@@ -37,68 +37,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('get-conversations-user', function (data) {
-        console.log('entra');
-        console.log(data);
-        var conversations_fetch = [];
-        var conversations_db = function (callback) {
-            var conversations_sql = `SELECT 
-                    conversations.id as conversation_id,
-                    conversations.other_user_id,
-                    conversations.creator_user_id,
-                    messages.user_id,
-                    conversations.name as img,
-                    jhi_user.name as user_name,
-                    jhi_user.name as from_user,
-                    conversations.name as group_name,
-                    messages.text as message,
-                    messages.date,
-                    users_has_conversations.is_read  
-                    FROM conversations 
-                    INNER JOIN messages on conversations.id = messages.conversation_id
-                    INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
-                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
-                    where jhi_user.id = '${data.user_id}'
-                    order by messages.id DESC;`;
-
-            con.query(conversations_sql, function (err, conversations, fields) {
-
-                for (var i = 0; i < conversations.length; i++) {
-                    if (conversations[i].creator_user_id != data.user_id) {
-                        conversations[i].from_user = true;
-                        var user_id = conversations[i].user_id;
-                        conversations[i].user_id = conversations[i].other_user_id;
-                        conversations[i].other_user_id = user_id;
-                    } else {
-                        conversations[i].from_user = false;
-                    }
-
-                    conversations_fetch.push(conversations[i]);
-                }
-                callback(null, conversations_fetch);
-            });
-        }
-
-        conversations_db(function (err, conversations) {
-            conversations_formatted = []
-            conversations_id_added = [];
-            for (let i = 0; i < conversations.length; i++) {
-                if (i == 0) {
-                    conversations_formatted.push(conversations[i]);
-                    conversations_id_added.push(conversations[i].conversation_id);
-                }
-
-                if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
-                    conversations_formatted.push(conversations[i + 1]);
-                    conversations_id_added.push(conversations[i + 1].conversation_id);
-                }
-            }
-
-            console.log(conversations_formatted);
-            var string = JSON.stringify(conversations_formatted);
-            var json = JSON.parse(string);
-            console.log(json);
-            io.emit('conversations-user-id-' + data.user_id, json);
-        });
+        get_conversations(data);
     });
 
     socket.on('add-users-to-conversation', function (data) {
@@ -244,8 +183,9 @@ function insert_group(group) {
                         console.log(result.insertId);
                     });
 
-                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
-                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0)`;
+                    var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
+                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0, '${dt}')`;
                     con.query(sql, function (err, result) {
                         console.log("insert_top_secret_message >>");
                         console.log(err);
@@ -280,7 +220,7 @@ function insert_group(group) {
                     conversations.other_user_id,
                     conversations.creator_user_id,
                     messages.user_id,
-                    conversations.name as img,
+                    conversations.id as img,
                     jhi_user.name as user_name,
                     jhi_user.name as from_user,
                     conversations.name as group_name,
@@ -340,8 +280,9 @@ function add_users_to_conversation(data) {
             con.query(sql, function (err, result) {
                 console.log(err);
 
-                var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type) 
-                VALUES (${data.users_id[i]}, '${data.conversation_id}', '-#top-secret#-', 0, '', 0)`;
+                var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
+                VALUES (${data.users_id[i]}, '${data.conversation_id}', '-#top-secret#-', 0, '', 0, '${dt}')`;
                 con.query(sql, function (err, result) {
                     console.log("insert_top_secret_message >>");
                     console.log(err);
@@ -407,6 +348,27 @@ function insert_message(message) {
                 console.log("error set read message >>");
                 console.log(err);
                 console.log("message not read");
+            });
+
+            var sql = `SELECT 
+                    user_id
+                    FROM users_has_conversations 
+                    where users_has_conversations.conversation_id = '${message.conversation_id}';`;
+            con.query(sql, function (err, result) {
+                console.log("error >>");
+                console.log(err);
+                console.log("select user has conversations of users of conversation");
+                console.log(result);
+
+                for (var index = 0; index < result.length; index++) {
+                    console.log('for >>');
+                    console.log(result.length);
+                    console.log(index);
+                    get_conversations(result[index]);
+                    setTimeout(() => {
+
+                    }, 400);
+                }
             });
         });
     });
@@ -514,6 +476,71 @@ async function get_messages_query(data) {
             resolve(messages);
         });
     })
+}
+
+function get_conversations(data) {
+    console.log('entra');
+    console.log(data);
+    var conversations_fetch = [];
+    var conversations_db = function (callback) {
+        var conversations_sql = `SELECT 
+                    conversations.id as conversation_id,
+                    conversations.other_user_id,
+                    conversations.creator_user_id,
+                    messages.user_id,
+                    conversations.id as img,
+                    jhi_user.name as user_name,
+                    jhi_user.name as from_user,
+                    conversations.name as group_name,
+                    messages.text as message,
+                    messages.date,
+                    users_has_conversations.is_read  
+                    FROM conversations 
+                    INNER JOIN messages on conversations.id = messages.conversation_id
+                    INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
+                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
+                    where jhi_user.id = '${data.user_id}'
+                    order by messages.id DESC;`;
+
+        con.query(conversations_sql, function (err, conversations, fields) {
+
+            for (var i = 0; i < conversations.length; i++) {
+                if (conversations[i].creator_user_id != data.user_id) {
+                    conversations[i].from_user = true;
+                    var user_id = conversations[i].user_id;
+                    conversations[i].user_id = conversations[i].other_user_id;
+                    conversations[i].other_user_id = user_id;
+                } else {
+                    conversations[i].from_user = false;
+                }
+
+                conversations_fetch.push(conversations[i]);
+            }
+            callback(null, conversations_fetch);
+        });
+    }
+
+    conversations_db(function (err, conversations) {
+        conversations_formatted = []
+        conversations_id_added = [];
+        for (let i = 0; i < conversations.length; i++) {
+            if (i == 0) {
+                conversations_formatted.push(conversations[i]);
+                conversations_id_added.push(conversations[i].conversation_id);
+            }
+
+            if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
+                conversations_formatted.push(conversations[i + 1]);
+                conversations_id_added.push(conversations[i + 1].conversation_id);
+            }
+        }
+
+        var string = JSON.stringify(conversations_formatted);
+        var json = JSON.parse(string);
+        console.log('conversations-user-id-' + data.user_id + ' >>');
+        console.log(json);
+        io.emit('conversations-user-id-' + data.user_id, json);
+    });
 }
 
 server.listen(process.env.PORT, function () {
