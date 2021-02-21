@@ -124,7 +124,6 @@ io.on('connection', function (socket) {
 
 function insert_group(group) {
     insert_id = 0;
-    console.log('entra');
     if (group.is_group != 0) {
         con.connect(function (err) {
             var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.group_name}', '${group.is_group}', '${group.creator_user_id}')`;
@@ -132,30 +131,24 @@ function insert_group(group) {
                 console.log('err >>');
                 console.log(err);
                 insert_id = result.insertId
-                console.log("1 record inserted");
 
                 group.users_id.map(function (user_id, index) {
                     var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
                     con.query(sql, function (err, result) {
                         result.insertId
-                        console.log("1 record inserted");
                     });
 
                     var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
                     var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
                     VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', '3', '${dt}')`;
                     con.query(sql, function (err, result) {
-                        console.log("insert_top_secret_message >>");
                         console.log(err);
-                        console.log(result.insertId);
 
                         var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
                         VALUES (${user_id}, ${result.insertId}, 2)`;
                         con.query(sql, function (err, result) {
                             console.log("error >>");
                             console.log(err);
-                            console.log("insert in read");
-
                         });
                     });
                 }).join(" ");
@@ -173,35 +166,28 @@ function insert_group(group) {
             con.query(sql, function (err, result) {
                 console.log(err);
                 insert_id = result.insertId
-                console.log("conversation created id >>");
-                console.log(result.insertId);
 
                 group.users_id.map(function (user_id, index) {
                     var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
                     con.query(sql, function (err, result) {
-                        console.log("users_has_conversations id >>");
-                        console.log(result.insertId);
+                        console.log("err >>");
+                        console.log(err);
                     });
 
                     var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
                     var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
                     VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', 0, '${dt}')`;
                     con.query(sql, function (err, result) {
-                        console.log("insert_top_secret_message >>");
+                        console.log("err >>");
                         console.log(err);
-                        console.log(result.insertId);
 
                         var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
                         VALUES (${user_id}, ${result.insertId}, 2)`;
                         con.query(sql, function (err, result) {
                             console.log("error >>");
                             console.log(err);
-                            console.log("insert in read");
-
                         });
                     });
-
-
                 }).join(" ");
             });
         });
@@ -258,7 +244,6 @@ function insert_group(group) {
                     }
                 }
 
-                // console.log(conversations_formatted);
                 var string = JSON.stringify(conversations_formatted);
                 var json = JSON.parse(string);
                 console.log('conversations-user-id-' + user_id + ' >>');
@@ -278,23 +263,21 @@ function add_users_to_conversation(data) {
         for (let i = 0; i < data.users_id.length; i++) {
             var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${data.users_id[i]}', '${data.conversation_id}', '0')`;
             con.query(sql, function (err, result) {
+                console.log('err >>');
                 console.log(err);
 
                 var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
                 var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
                 VALUES (${data.users_id[i]}, '${data.conversation_id}', '-#top-secret#-', 0, '', 0, '${dt}')`;
                 con.query(sql, function (err, result) {
-                    console.log("insert_top_secret_message >>");
+                    console.log("err >>");
                     console.log(err);
-                    console.log(result.insertId);
 
                     var sql = `INSERT INTO users_read_messages (user_id, message_id, is_read) 
                     VALUES (${data.users_id[i]}, ${result.insertId}, 2)`;
                     con.query(sql, function (err, result) {
                         console.log("error >>");
                         console.log(err);
-                        console.log("insert in read");
-
                     });
                 });
 
@@ -316,7 +299,6 @@ function insert_message(message) {
         con.query(sql, function (err, result) {
             console.log("error >>");
             console.log(err);
-            console.log("mensaje creado");
             insert_id = result.insertId;
 
             var sql = `SELECT 
@@ -326,7 +308,6 @@ function insert_message(message) {
             con.query(sql, function (err, result) {
                 console.log("error >>");
                 console.log(err);
-                console.log("select user has conversations");
 
                 for (i = 0; i < result.length; i++) {
                     var sql = `INSERT INTO users_read_messages (user_id, message_id) 
@@ -334,7 +315,6 @@ function insert_message(message) {
                     con.query(sql, function (err, result) {
                         console.log("error >>");
                         console.log(err);
-                        console.log("insert in read");
 
                     });
                 }
@@ -347,7 +327,6 @@ function insert_message(message) {
             con.query(sql, function (err, result) {
                 console.log("error set read message >>");
                 console.log(err);
-                console.log("message not read");
             });
 
             var sql = `SELECT 
@@ -365,9 +344,7 @@ function insert_message(message) {
                     console.log(result.length);
                     console.log(index);
                     get_conversations(result[index]);
-                    setTimeout(() => {
-
-                    }, 400);
+                    setTimeout(() => { }, 400);
                 }
             });
         });
@@ -386,8 +363,6 @@ function get_messages(data) {
             const READ = 2;
 
             messages_formatted = [];
-            console.log('messages >>');
-            console.log(messages);
             state = READ;
             for (i = 0; i <= messages.length; i++) {
                 if (messages[i + 1] != undefined && messages[i].state != READ) {
@@ -470,7 +445,6 @@ async function get_messages_query(data) {
             con.query(sql, function (err, result) {
                 console.log("error set read message >>");
                 console.log(err);
-                console.log("message read");
             });
 
             resolve(messages);
@@ -479,8 +453,6 @@ async function get_messages_query(data) {
 }
 
 function get_conversations(data) {
-    console.log('entra');
-    console.log(data);
     var conversations_fetch = [];
     var conversations_db = function (callback) {
         var conversations_sql = `SELECT 
