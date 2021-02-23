@@ -465,19 +465,20 @@ function get_conversations(data) {
                     group by conversations.id;`;
 
         con.query(conversations_sql, function (err, conversations, fields) {
-            var where_in = '(';
-            for (let index = 0; index < conversations.length; index++) {
-                if (index == conversations.length - 1) {
-                    where_in = where_in + conversations[index].conversation_id + ')';
+            if (conversations.length == 0) {
+                callback(null, []);
+            } else {
+                var where_in = '(';
+                for (let index = 0; index < conversations.length; index++) {
+                    if (index == conversations.length - 1) {
+                        where_in = where_in + conversations[index].conversation_id + ')';
+                    }
+                    else {
+                        where_in = where_in + conversations[index].conversation_id + ',';
+                    }
                 }
-                else {
-                    where_in = where_in + conversations[index].conversation_id + ',';
-                }
-            }
 
-            console.log(where_in);
-
-            var conversations_sql = `SELECT 
+                var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
                     conversations.other_user_id,
                     conversations.creator_user_id,
@@ -496,22 +497,23 @@ function get_conversations(data) {
                     where messages.conversation_id IN ${where_in}
                     order by messages.id DESC;`;
 
-            con.query(conversations_sql, function (err, conversations, fields) {
+                con.query(conversations_sql, function (err, conversations, fields) {
 
-                for (var i = 0; i < conversations.length; i++) {
-                    if (conversations[i].creator_user_id != data.user_id) {
-                        conversations[i].from_user = true;
-                        var user_id = conversations[i].user_id;
-                        conversations[i].user_id = conversations[i].other_user_id;
-                        conversations[i].other_user_id = user_id;
-                    } else {
-                        conversations[i].from_user = false;
+                    for (var i = 0; i < conversations.length; i++) {
+                        if (conversations[i].creator_user_id != data.user_id) {
+                            conversations[i].from_user = true;
+                            var user_id = conversations[i].user_id;
+                            conversations[i].user_id = conversations[i].other_user_id;
+                            conversations[i].other_user_id = user_id;
+                        } else {
+                            conversations[i].from_user = false;
+                        }
+
+                        conversations_fetch.push(conversations[i]);
                     }
-
-                    conversations_fetch.push(conversations[i]);
-                }
-                callback(null, conversations_fetch);
-            });
+                    callback(null, conversations_fetch);
+                });
+            }
         });
     }
 
