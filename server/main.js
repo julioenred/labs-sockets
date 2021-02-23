@@ -465,6 +465,17 @@ function get_conversations(data) {
                     group by conversations.id;`;
 
         con.query(conversations_sql, function (err, conversations, fields) {
+            var where_in = '(';
+            for (let index = 0; index < conversations.length; index++) {
+                if (index == conversations.length - 1) {
+                    where_in = where_in + conversations[index].conversation_id + ')';
+                }
+                else {
+                    where_in = where_in + conversations[index].conversation_id + ',';
+                }
+            }
+
+            console.log(where_in);
 
             var conversations_sql = `SELECT 
                     conversations.id as conversation_id,
@@ -482,10 +493,11 @@ function get_conversations(data) {
                     INNER JOIN messages on conversations.id = messages.conversation_id
                     INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
                     INNER JOIN jhi_user on messages.user_id = jhi_user.id
-                    where messages.conversation_id IN (1, 2, 4)
+                    where messages.conversation_id IN ${where_in}
                     order by messages.id DESC;`;
 
             con.query(conversations_sql, function (err, conversations, fields) {
+
                 for (var i = 0; i < conversations.length; i++) {
                     if (conversations[i].creator_user_id != data.user_id) {
                         conversations[i].from_user = true;
