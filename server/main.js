@@ -233,14 +233,34 @@ function insert_group(group) {
             }
 
             conversations_db(function (err, conversations) {
-                conversations_formatted = []
+                conversations_formatted = [];
+                conversations_id_added = [];
+                var is_read = new Map();
+                console.log(conversations);
                 for (let i = 0; i < conversations.length; i++) {
-                    if (i == 0) {
-                        conversations_formatted.push(conversations[i]);
+                    if (i == 0 && conversations[i].user_id == user_id) {
+                        is_read.set(conversations[i].conversation_id, conversations[i].is_read);
+                        conversations_id_added.push(conversations[i].conversation_id);
                     }
 
-                    if ((i + 1 < conversations.length) && conversations[i].conversation_id != conversations[i + 1].conversation_id) {
+                    if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i].user_id == user_id) {
+                        is_read.set(conversations[i + 1].conversation_id, conversations[i + 1].is_read);
+                        conversations_id_added.push(conversations[i].conversation_id);
+                    }
+                }
+
+                conversations_id_added = [];
+                for (let i = 0; i < conversations.length; i++) {
+                    if (i == 0) {
+                        conversations[i].is_read = is_read.get(conversations[i].conversation_id);
+                        conversations_formatted.push(conversations[i]);
+                        conversations_id_added.push(conversations[i].conversation_id);
+                    }
+
+                    if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
+                        conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
                         conversations_formatted.push(conversations[i + 1]);
+                        conversations_id_added.push(conversations[i + 1].conversation_id);
                     }
                 }
 
