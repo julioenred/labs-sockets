@@ -135,7 +135,7 @@ function insert_group(group) {
                 insert_id = result.insertId
 
                 group.users_id.map(function (user_id, index) {
-                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${user_id}', '${insert_id}', 1)`;
                     con.query(sql, function (err, result) {
                         result.insertId
                     });
@@ -170,7 +170,7 @@ function insert_group(group) {
                 insert_id = result.insertId
 
                 group.users_id.map(function (user_id, index) {
-                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id) VALUES ('${user_id}', '${insert_id}')`;
+                    var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${user_id}', '${insert_id}', 1)`;
                     con.query(sql, function (err, result) {
                         console.log("err >>");
                         console.log(err);
@@ -313,7 +313,7 @@ function add_users_to_conversation(data) {
         console.log('add-users-to-converstaion params >>');
         console.log(data);
         for (let i = 0; i < data.users_id.length; i++) {
-            var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${data.users_id[i]}', '${data.conversation_id}', '0')`;
+            var sql = `INSERT INTO users_has_conversations (user_id, conversation_id, is_read) VALUES ('${data.users_id[i]}', '${data.conversation_id}', '1')`;
             con.query(sql, function (err, result) {
                 console.log('err >>');
                 console.log(err);
