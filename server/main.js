@@ -597,6 +597,8 @@ function get_conversations(data) {
         conversations_id_added = [];
         for (let i = 0; i < conversations.length; i++) {
             if (i == 0) {
+                console.log('is_read status >>');
+                console.log(is_read);
                 conversations[i].is_read = is_read.get(conversations[i].conversation_id);
                 conversations_formatted.push(conversations[i]);
                 conversations_id_added.push(conversations[i].conversation_id);
