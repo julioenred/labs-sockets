@@ -545,12 +545,12 @@ function get_conversations(data) {
         conversations_id_added = [];
         var is_read = new Map();
         for (let i = 0; i < conversations.length; i++) {
-            if (i == 0 && conversations[i].user_id == data.user_id_request) {
+            if (i == 0 && conversations[i].user_id == data.user_id) {
                 is_read.set(conversations[i].conversation_id, conversations[i].is_read);
                 conversations_id_added.push(conversations[i].conversation_id);
             }
 
-            if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i].user_id == data.user_id_request) {
+            if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i].user_id == data.user_id) {
                 is_read.set(conversations[i + 1].conversation_id, conversations[i + 1].is_read);
                 conversations_id_added.push(conversations[i].conversation_id);
             }
