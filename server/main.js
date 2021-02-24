@@ -311,6 +311,12 @@ function insert_group(group) {
                     }
                 }
 
+                for (let index = 0; index < conversations_formatted.length; index++) {
+                    if (typeof conversations_formatted.is_read === 'undefined') {
+                        conversations_formatted[index].is_read = 1;
+                    }
+                }
+
                 var string = JSON.stringify(conversations_formatted);
                 var json = JSON.parse(string);
                 console.log('conversations-user-id-' + user_id + ' >>');
@@ -635,6 +641,12 @@ function get_conversations(data) {
                 }
                 conversations_formatted.push(conversations[i + 1]);
                 conversations_id_added.push(conversations[i + 1].conversation_id);
+            }
+        }
+
+        for (let index = 0; index < conversations_formatted.length; index++) {
+            if (typeof conversations_formatted.is_read === 'undefined') {
+                conversations_formatted[index].is_read = 1;
             }
         }
 
