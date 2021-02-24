@@ -204,33 +204,64 @@ function insert_group(group) {
             var conversations_fetch = [];
             var conversations_db = function (callback) {
                 var conversations_sql = `SELECT 
-                    conversations.id as conversation_id,
-                    conversations.other_user_id,
-                    conversations.creator_user_id,
-                    messages.user_id,
-                    conversations.id as img,
-                    jhi_user.name as user_name,
-                    jhi_user.name as from_user,
-                    conversations.name as group_name,
-                    messages.text as message,
-                    messages.date,
-                    conversations.name as is_read 
+                    conversations.id as conversation_id
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
+                    INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
                     INNER JOIN jhi_user on messages.user_id = jhi_user.id
                     where jhi_user.id = '${user_id}'
-                    order by messages.id DESC;`;
+                    group by conversations.id;`;
 
                 con.query(conversations_sql, function (err, conversations, fields) {
-                    for (var i = 0; i < conversations.length; i++) {
-                        if (group.creator_user_id != conversations[i].creator_user_id) {
-                            var user_id = conversations[i].user_id;
-                            conversations[i].user_id = conversations[i].other_user_id;
-                            conversations[i].other_user_id = user_id;
+                    if (conversations.length == 0) {
+                        callback(null, []);
+                    } else {
+                        var where_in = '(';
+                        for (let index = 0; index < conversations.length; index++) {
+                            if (index == conversations.length - 1) {
+                                where_in = where_in + conversations[index].conversation_id + ')';
+                            }
+                            else {
+                                where_in = where_in + conversations[index].conversation_id + ',';
+                            }
                         }
-                        conversations_fetch.push(conversations[i]);
+
+                        var conversations_sql = `SELECT 
+                        conversations.id as conversation_id,
+                        conversations.other_user_id,
+                        conversations.creator_user_id,
+                        messages.user_id,
+                        conversations.id as img,
+                        jhi_user.name as user_name,
+                        jhi_user.name as from_user,
+                        conversations.name as group_name,
+                        messages.text as message,
+                        messages.date,
+                        users_has_conversations.is_read  
+                        FROM conversations 
+                        INNER JOIN messages on conversations.id = messages.conversation_id
+                        INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
+                        INNER JOIN jhi_user on messages.user_id = jhi_user.id
+                        where messages.conversation_id IN ${where_in}
+                        order by messages.id DESC;`;
+
+                        con.query(conversations_sql, function (err, conversations, fields) {
+
+                            for (var i = 0; i < conversations.length; i++) {
+                                if (conversations[i].creator_user_id != user_id) {
+                                    conversations[i].from_user = true;
+                                    var user_id = conversations[i].user_id;
+                                    conversations[i].user_id = conversations[i].other_user_id;
+                                    conversations[i].other_user_id = user_id;
+                                } else {
+                                    conversations[i].from_user = false;
+                                }
+
+                                conversations_fetch.push(conversations[i]);
+                            }
+                            callback(null, conversations_fetch);
+                        });
                     }
-                    callback(null, conversations_fetch);
                 });
             }
 
