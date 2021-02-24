@@ -599,7 +599,11 @@ function get_conversations(data) {
             if (i == 0) {
                 console.log('is_read status >>');
                 console.log(is_read);
-                conversations[i].is_read = is_read.get(conversations[i].conversation_id);
+                if (is_read.size == 0) {
+                    conversations[i].is_read = 1;
+                } else {
+                    conversations[i].is_read = is_read.get(conversations[i].conversation_id);
+                }
                 conversations_formatted.push(conversations[i]);
                 conversations_id_added.push(conversations[i].conversation_id);
             }
@@ -607,7 +611,11 @@ function get_conversations(data) {
             if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
                 console.log('is_read status >>');
                 console.log(is_read);
-                conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
+                if (is_read.size == 0) {
+                    conversations[i + 1].is_read = 1;
+                } else {
+                    conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
+                }
                 conversations_formatted.push(conversations[i + 1]);
                 conversations_id_added.push(conversations[i + 1].conversation_id);
             }
