@@ -123,6 +123,8 @@ io.on('connection', function (socket) {
 });
 
 function insert_group(group) {
+    console.log('insert group data >>');
+    console.log(group);
     insert_id = 0;
     if (group.is_group != 0) {
         con.connect(function (err) {
@@ -236,7 +238,6 @@ function insert_group(group) {
                 conversations_formatted = [];
                 conversations_id_added = [];
                 var is_read = new Map();
-                console.log(conversations);
                 for (let i = 0; i < conversations.length; i++) {
                     if (i == 0 && conversations[i].user_id == user_id) {
                         is_read.set(conversations[i].conversation_id, conversations[i].is_read);
@@ -473,6 +474,8 @@ async function get_messages_query(data) {
 }
 
 function get_conversations(data) {
+    console.log('data get converstions >>');
+    console.log(data);
     var conversations_fetch = [];
     var conversations_db = function (callback) {
         var conversations_sql = `SELECT 
@@ -541,7 +544,6 @@ function get_conversations(data) {
         conversations_formatted = [];
         conversations_id_added = [];
         var is_read = new Map();
-        console.log(conversations);
         for (let i = 0; i < conversations.length; i++) {
             if (i == 0 && conversations[i].user_id == data.user_id_request) {
                 is_read.set(conversations[i].conversation_id, conversations[i].is_read);
