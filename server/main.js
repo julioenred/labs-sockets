@@ -575,14 +575,16 @@ function get_conversations(data) {
                 con.query(conversations_sql, function (err, conversations, fields) {
 
                     for (var i = 0; i < conversations.length; i++) {
-                        if (conversations[i].creator_user_id != data.user_id) {
-                            conversations[i].from_user = true;
-                            var user_id = conversations[i].user_id;
-                            conversations[i].user_id = conversations[i].other_user_id;
-                            conversations[i].other_user_id = user_id;
-                        } else {
-                            conversations[i].from_user = false;
-                        }
+                        // if (conversations[i].creator_user_id != data.user_id) {
+                        //     conversations[i].from_user = true;
+                        //     var user_id = conversations[i].user_id;
+                        //     if (conversations[i].other_user_id !== null) {
+                        //         conversations[i].user_id = conversations[i].other_user_id;
+                        //     }
+                        //     conversations[i].other_user_id = user_id;
+                        // } else {
+                        //     conversations[i].from_user = false;
+                        // }
 
                         conversations_fetch.push(conversations[i]);
                     }
@@ -596,21 +598,15 @@ function get_conversations(data) {
         conversations_formatted = [];
         conversations_id_added = [];
         var is_read = new Map();
-        console.log('conversations >>');
-        console.log(conversations);
         for (let i = 0; i < conversations.length; i++) {
-            if (i == 0 && conversations[i].user_id == data.user_id && conversations[i].message != '-#top-secret#-') {
+            if (i == 0 && conversations[i].user_id == data.user_id) {
                 is_read.set(conversations[i].conversation_id, conversations[i].is_read);
                 conversations_id_added.push(conversations[i].conversation_id);
             }
 
-            if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i + 1].user_id == data.user_id && conversations[i + 1].message != '-#top-secret#-') {
+            if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i + 1].user_id == data.user_id) {
                 is_read.set(conversations[i + 1].conversation_id, conversations[i + 1].is_read);
                 conversations_id_added.push(conversations[i].conversation_id);
-                console.log('is_read >>');
-                console.log(is_read);
-                console.log('index >>');
-                console.log(i + 1);
             }
         }
 
@@ -618,36 +614,32 @@ function get_conversations(data) {
         conversations_id_added = [];
         for (let i = 0; i < conversations.length; i++) {
             if (i == 0) {
-                console.log('is_read status >>>>>>>>>>>>');
-                console.log(is_read);
-                console.log(is_read.get(conversations[i].conversation_id))
-                if (is_read.size == 0) {
-                    conversations[i].is_read = 1;
-                } else {
-                    conversations[i].is_read = is_read.get(conversations[i].conversation_id);
-                }
                 conversations_formatted.push(conversations[i]);
                 conversations_id_added.push(conversations[i].conversation_id);
             }
 
             if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
-                console.log('is_read status >>>>>>>>>>>>');
-                console.log(is_read);
-                console.log(is_read.get(conversations[i].conversation_id))
-                if (is_read.size == 0) {
-                    conversations[i + 1].is_read = 1;
-                } else {
-                    conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
-                }
                 conversations_formatted.push(conversations[i + 1]);
                 conversations_id_added.push(conversations[i + 1].conversation_id);
             }
         }
 
-        for (let index = 0; index < conversations_formatted.length; index++) {
-            if (typeof conversations_formatted.is_read === 'undefined') {
-                conversations_formatted[index].is_read = 1;
+        console.log(conversations_formatted);
+
+        for (let i = 0; i < conversations_formatted.length; i++) {
+            if (conversations_formatted[i].creator_user_id != data.user_id) {
+                conversations_formatted[i].from_user = true;
+            } else {
+                conversations_formatted[i].from_user = false;
             }
+            console.log(is_read.get(conversations_formatted[i].conversation_id));
+            conversations_formatted[i].is_read = is_read.get(conversations_formatted[i].conversation_id);
+
+            // if (typeof conversations_formatted.is_read === 'undefined') {
+            //     conversations_formatted[i].is_read = 1;
+            // }
+
+            console.log(conversations_formatted);
         }
 
         var string = JSON.stringify(conversations_formatted);
