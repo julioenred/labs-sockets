@@ -610,7 +610,6 @@ function get_conversations(data) {
             }
         }
 
-
         conversations_id_added = [];
         for (let i = 0; i < conversations.length; i++) {
             if (i == 0) {
@@ -624,29 +623,43 @@ function get_conversations(data) {
             }
         }
 
-        console.log(conversations_formatted);
+        var users_has_conversations_sql = `SELECT 
+                    *  
+                    FROM users_has_conversations 
+                    where users_has_conversations.user_id = ${data.user_id};`;
 
-        for (let i = 0; i < conversations_formatted.length; i++) {
-            if (conversations_formatted[i].creator_user_id != data.user_id) {
-                conversations_formatted[i].from_user = true;
-            } else {
-                conversations_formatted[i].from_user = false;
+        con.query(users_has_conversations_sql, function (err, users_has_conversations, fields) {
+            var is_read = new Map();
+            for (let i = 0; i < users_has_conversations.length; i++) {
+                is_read.set(users_has_conversations[i].conversation_id, users_has_conversations[i].is_read);
+
             }
-            console.log(is_read.get(conversations_formatted[i].conversation_id));
-            conversations_formatted[i].is_read = is_read.get(conversations_formatted[i].conversation_id);
 
-            // if (typeof conversations_formatted.is_read === 'undefined') {
-            //     conversations_formatted[i].is_read = 1;
-            // }
+            for (let i = 0; i < conversations_formatted.length; i++) {
 
-            console.log(conversations_formatted);
-        }
+                // console.log(users_has_conversations);
+                if (conversations_formatted[i].creator_user_id != data.user_id) {
+                    conversations_formatted[i].from_user = true;
+                } else {
+                    conversations_formatted[i].from_user = false;
+                }
 
-        var string = JSON.stringify(conversations_formatted);
-        var json = JSON.parse(string);
-        console.log('conversations-user-id-' + data.user_id + ' >>');
-        console.log(json);
-        io.emit('conversations-user-id-' + data.user_id, json);
+                conversations_formatted[i].is_read = is_read.get(conversations_formatted[i].conversation_id);
+
+                // if (typeof conversations_formatted.is_read === 'undefined') {
+                //     conversations_formatted[i].is_read = 1;
+                // }
+            }
+
+            var string = JSON.stringify(conversations_formatted);
+            var json = JSON.parse(string);
+            console.log('conversations-user-id-' + data.user_id + ' >>');
+            console.log(json);
+            io.emit('conversations-user-id-' + data.user_id, json);
+
+        });
+
+
     });
 }
 
