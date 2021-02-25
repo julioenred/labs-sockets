@@ -478,10 +478,10 @@ function get_messages(data) {
                     io.emit('messages-conversation-' + data.conversation_id, messages_paged);
                 });
 
-            }, 300);
+            }, 100);
 
         });
-    }, 300);
+    }, 100);
 
 }
 
