@@ -106,18 +106,18 @@ io.on('connection', function (socket) {
                             console.log('conversacion creada');
                             insert_group(group);
                         }
-                        io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
+                        io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
                     });
                 } else {
                     console.log('recovery-conversation-created-emit >>');
                     console.log({ conversation_id: data.get('conversation_id') });
-                    io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
+                    io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
                 }
             });
         } else {
             console.log('recovery-conversation-created-emit >>');
             console.log({ conversation_id: data.get('conversation_id') });
-            io.emit('conversation-created-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
+            io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
         }
     });
 });
