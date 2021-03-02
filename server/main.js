@@ -1,11 +1,12 @@
 require('dotenv').config();
 const { promises } = require('dns');
 var express = require('express');
+var multer = require('multer');
 var mysql = require('mysql');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var util = require('util');
+var fs = require('fs');
 var Conversation = require('./conversation.js');
 
 var con = mysql.createConnection({
@@ -15,11 +16,66 @@ var con = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
+var storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+
+var upload = multer({ storage: storage });
+
+var AWS = require('aws-sdk');
+
+AWS.config.update({
+    region: 'eu-west-1',
+    accessKeyId: process.env.ACCESS_KEY_ID,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY
+});
+
+const s3 = new AWS.S3();
+
 app.use(express.static('public'));
 
-app.get('/', function (req, res) {
-    res.status(200).send('hola pepe');
+app.post('/upload_media', upload.single('media'), function (req, res) {
+
+    // console.log(req.file);
+    var date = Date.now();
+    var filename = date + '-' + req.file.filename;
+    uploadFile(req.file.path, filename, res);
+
+    res.status(200).send({ media_url: process.env.URL_BASE_MEDIA + filename });
+
 });
+
+function uploadFile(source, targetName, res) {
+
+    console.log('preparing to upload...');
+
+    fs.readFile(source, function (err, filedata) {
+        if (!err) {
+            const putParams = {
+                Bucket: 'elsha.test',
+                Key: targetName,
+                Body: filedata
+            };
+            s3.putObject(putParams, function (err, data) {
+                // if (err) {
+                //     console.log('Could nor upload the file. Error :', err);
+                //     return res.send({ success: false });
+                // }
+                // else {
+                //     // fs.unlink(source);// Deleting the file from uploads folder(Optional).Do Whatever you prefer.
+                //     console.log('Successfully uploaded the file');
+                //     return res.send({ success: true });
+                // }
+            });
+        }
+        else {
+            console.log({ 'err': err });
+        }
+    });
+}
 
 io.on('connection', function (socket) {
     console.log('alguien se conecto con sockets');
