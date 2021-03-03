@@ -28,7 +28,7 @@ var upload = multer({ storage: storage });
 var AWS = require('aws-sdk');
 
 AWS.config.update({
-    region: 'eu-west-1',
+    region: process.env.REGION,
     accessKeyId: process.env.ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRET_ACCESS_KEY
 });
@@ -600,6 +600,7 @@ async function get_messages_query(data) {
                     order by messages.id DESC;`;
 
         con.query(messages_sql, function (err, messages, fields) {
+            var data = [];
             if (typeof data.user_id_request !== 'undefined') {
                 user_id = data.user_id_request;
             }
@@ -608,7 +609,9 @@ async function get_messages_query(data) {
                 user_id = data.creator_user_id;
             }
 
+            var users_id = [];
             messages.map(function (message, index) {
+                users_id.push(message.user_id);
                 if (message.user_id == user_id) {
                     message.from_user = false
                 } else {
@@ -617,6 +620,14 @@ async function get_messages_query(data) {
 
                 messages[index] = message;
             });
+
+            let users_id_filtered = users_id.filter((item, index) => {
+                return data.indexOf(item) === index;
+            });
+
+            var data = new Map();
+            data.set('messages', messages);
+            data.set('users_id', users_id_filtered);
 
             var sql = `UPDATE 
                     users_has_conversations
@@ -638,7 +649,7 @@ async function get_messages_query(data) {
                 console.log(err);
             });
 
-            resolve(messages);
+            resolve(data);
         });
     })
 }
