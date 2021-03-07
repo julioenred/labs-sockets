@@ -104,6 +104,10 @@ io.on('connection', function (socket) {
         get_messages(data);
     });
 
+    socket.on('get-conversations-not-read', function (data) {
+        get_conversations_not_read(data);
+    });
+
     socket.on('new-message', function (data) {
         insert_message(data);
         get_messages(data);
@@ -473,6 +477,7 @@ function insert_message(message) {
                     console.log(result.length);
                     console.log(index);
                     get_conversations(result[index]);
+                    get_conversations_not_read(result[index]);
                     setTimeout(() => { }, 400);
                 }
             });
@@ -502,23 +507,26 @@ function get_messages(data) {
                     console.log(is_read);
                     messages_formatted = [];
 
-                    for (i = 0; i <= messages.length; i++) {
+                    console.log('trace >>');
+                    console.log(messages);
 
-                        if (i < messages.length - 1 && messages[i].message_id != messages[i + 1].message_id) {
-                            messages[i].state = is_read.get(messages[i].message_id);
-                            if (messages[i].state === 'undefined') {
-                                messages[i].state = 0
+                    for (i = 0; i <= messages.get('messages').length; i++) {
+
+                        if (i < messages.get('messages').length - 1 && messages.get('messages')[i].message_id != messages.get('messages')[i + 1].message_id) {
+                            messages.get('messages')[i].state = is_read.get(messages.get('messages')[i].message_id);
+                            if (messages.get('messages')[i].state === 'undefined') {
+                                messages.get('messages')[i].state = 0
                             }
-                            messages_formatted.push(messages[i]);
+                            messages_formatted.push(messages.get('messages')[i]);
 
                         }
 
-                        if (i == messages.length) {
-                            messages[i - 1].state = is_read.get(messages[i - 1].message_id);
-                            if (messages[i - 1].state === 'undefined') {
-                                messages[i - 1].state = 0
+                        if (i == messages.get('messages').length) {
+                            messages.get('messages')[i - 1].state = is_read.get(messages.get('messages')[i - 1].message_id);
+                            if (messages.get('messages')[i - 1].state === 'undefined') {
+                                messages.get('messages')[i - 1].state = 0
                             }
-                            messages_formatted.push(messages[i - 1]);
+                            messages_formatted.push(messages.get('messages')[i - 1]);
                         }
                     }
 
@@ -529,9 +537,19 @@ function get_messages(data) {
                         }
                     }
 
+                    var messages_json = new Map();
+                    messages_json.set('messages', messages_paged);
+                    messages_json.set('users_id', messages.get('users_id'));
+
+                    let jsonObject = {};
+
+                    messages_json.forEach((value, key) => {
+                        jsonObject[key] = value;
+                    });
+
                     console.log('messages-conversation-' + data.conversation_id + ' >>');
-                    console.log(messages_paged);
-                    io.emit('messages-conversation-' + data.conversation_id, messages_paged);
+                    console.log(jsonObject);
+                    io.emit('messages-conversation-' + data.conversation_id, jsonObject);
                 });
 
             }, 100);
@@ -600,7 +618,7 @@ async function get_messages_query(data) {
                     order by messages.id DESC;`;
 
         con.query(messages_sql, function (err, messages, fields) {
-            var data = [];
+
             if (typeof data.user_id_request !== 'undefined') {
                 user_id = data.user_id_request;
             }
@@ -622,12 +640,12 @@ async function get_messages_query(data) {
             });
 
             let users_id_filtered = users_id.filter((item, index) => {
-                return data.indexOf(item) === index;
+                return users_id.indexOf(item) === index;
             });
 
-            var data = new Map();
-            data.set('messages', messages);
-            data.set('users_id', users_id_filtered);
+            var data_map = new Map();
+            data_map.set('messages', messages);
+            data_map.set('users_id', users_id_filtered);
 
             var sql = `UPDATE 
                     users_has_conversations
@@ -649,7 +667,7 @@ async function get_messages_query(data) {
                 console.log(err);
             });
 
-            resolve(data);
+            resolve(data_map);
         });
     })
 }
@@ -788,6 +806,22 @@ function get_conversations(data) {
 
         });
 
+
+    });
+}
+
+function get_conversations_not_read(data) {
+    var messages_read_sql = `SELECT 
+    *
+    FROM users_has_conversations
+    where users_has_conversations.user_id = '${data.user_id}'
+    and users_has_conversations.is_read = 0;`;
+
+    con.query(messages_read_sql, function (err, messages, fields) {
+        console.log('conversations-not-read-user-id-' + data.user_id + ' >>');
+        var json = { conversations_not_read: messages.length };
+        console.log(json);
+        io.emit('conversations-not-read-user-id-' + data.user_id, json);
 
     });
 }
