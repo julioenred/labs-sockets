@@ -77,6 +77,19 @@ function uploadFile(source, targetName, res) {
     });
 }
 
+app.get('/attachments', function (req, res) {
+
+    console.log(req.query.conversation_id);
+    var attachments_conversation_sql = `SELECT media_url
+                                        FROM messages
+                                        WHERE conversation_id = ${req.query.conversation_id} and media_url <> '';`;
+
+    con.query(attachments_conversation_sql, function (err, attachments, fields) {
+        console.log(attachments);
+        res.status(200).send(attachments);
+    });
+});
+
 io.on('connection', function (socket) {
     console.log('alguien se conecto con sockets');
     con.connect(function (err) {
