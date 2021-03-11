@@ -188,7 +188,7 @@ function insert_group(group) {
     insert_id = 0;
     if (group.is_group != 0) {
         con.connect(function (err) {
-            var sql = `INSERT INTO conversations (name, is_group, creator_user_id) VALUES ('${group.group_name}', '${group.is_group}', '${group.creator_user_id}')`;
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id, media_url) VALUES ('${group.group_name}', '${group.is_group}', '${group.creator_user_id}', '${group.media_url}')`;
             con.query(sql, function (err, result) {
                 console.log('err >>');
                 console.log(err);
@@ -224,7 +224,7 @@ function insert_group(group) {
                 }
             }
 
-            var sql = `INSERT INTO conversations (name, is_group, creator_user_id, other_user_id) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}', '${other_user_id}')`;
+            var sql = `INSERT INTO conversations (name, is_group, creator_user_id, other_user_id, media_url) VALUES ('${group.groupname}', '${group.is_group}', '${group.creator_user_id}', '${other_user_id}', '${group.media_url}')`;
             con.query(sql, function (err, result) {
                 console.log(err);
                 insert_id = result.insertId
@@ -704,6 +704,7 @@ function get_conversations(data) {
                     conversations.id as conversation_id,
                     conversations.other_user_id,
                     conversations.creator_user_id,
+                    conversations.media_url,
                     messages.user_id,
                     conversations.id as img,
                     jhi_user.name as user_name,
