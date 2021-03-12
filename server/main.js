@@ -193,6 +193,10 @@ io.on('connection', function (socket) {
             io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
         }
     });
+
+    socket.on('update-conversation', function (group) {
+        update_group(group);
+    });
 });
 
 function insert_group(group) {
@@ -273,10 +277,30 @@ function insert_group(group) {
         console.log(insert_id);
         console.log('users_id >>');
         console.log(group.users_id);
-        group.users_id.map(function (user_id, index) {
-            var conversations_fetch = [];
-            var conversations_db = function (callback) {
-                var conversations_sql = `SELECT 
+        get_users_conversations_and_emit_conversations(group.users_id);
+    }, 300);
+
+}
+
+function update_group(group) {
+    var update_group_sql = `UPDATE 
+                            conversations
+                            SET name='${group.group_name}', media_url='${group.media_url}'
+                            where id = ${group.conversation_id};`
+
+    con.query(update_group_sql, function (err, result) {
+        console.log("error update group >>");
+        console.log(err);
+    });
+
+    get_users_conversations_and_emit_conversations(group.users_id);
+}
+
+function get_users_conversations_and_emit_conversations(users_id) {
+    users_id.map(function (user_id, index) {
+        var conversations_fetch = [];
+        var conversations_db = function (callback) {
+            var conversations_sql = `SELECT 
                     conversations.id as conversation_id
                     FROM conversations 
                     INNER JOIN messages on conversations.id = messages.conversation_id
@@ -285,21 +309,21 @@ function insert_group(group) {
                     where jhi_user.id = '${user_id}'
                     group by conversations.id;`;
 
-                con.query(conversations_sql, function (err, conversations, fields) {
-                    if (conversations.length == 0) {
-                        callback(null, []);
-                    } else {
-                        var where_in = '(';
-                        for (let index = 0; index < conversations.length; index++) {
-                            if (index == conversations.length - 1) {
-                                where_in = where_in + conversations[index].conversation_id + ')';
-                            }
-                            else {
-                                where_in = where_in + conversations[index].conversation_id + ',';
-                            }
+            con.query(conversations_sql, function (err, conversations, fields) {
+                if (conversations.length == 0) {
+                    callback(null, []);
+                } else {
+                    var where_in = '(';
+                    for (let index = 0; index < conversations.length; index++) {
+                        if (index == conversations.length - 1) {
+                            where_in = where_in + conversations[index].conversation_id + ')';
                         }
+                        else {
+                            where_in = where_in + conversations[index].conversation_id + ',';
+                        }
+                    }
 
-                        var conversations_sql = `SELECT 
+                    var conversations_sql = `SELECT 
                         conversations.id as conversation_id,
                         conversations.other_user_id,
                         conversations.creator_user_id,
@@ -318,88 +342,88 @@ function insert_group(group) {
                         where messages.conversation_id IN ${where_in}
                         order by messages.id DESC;`;
 
-                        con.query(conversations_sql, function (err, conversations, fields) {
+                    con.query(conversations_sql, function (err, conversations, fields) {
 
-                            for (var i = 0; i < conversations.length; i++) {
-                                if (conversations[i].creator_user_id != user_id) {
-                                    conversations[i].from_user = true;
-                                    var user_id = conversations[i].user_id;
-                                    conversations[i].user_id = conversations[i].other_user_id;
-                                    conversations[i].other_user_id = user_id;
-                                } else {
-                                    conversations[i].from_user = false;
-                                }
-
-                                conversations_fetch.push(conversations[i]);
+                        for (var i = 0; i < conversations.length; i++) {
+                            if (conversations[i].creator_user_id != user_id) {
+                                conversations[i].from_user = true;
+                                var user_id = conversations[i].user_id;
+                                conversations[i].user_id = conversations[i].other_user_id;
+                                conversations[i].other_user_id = user_id;
+                            } else {
+                                conversations[i].from_user = false;
                             }
-                            callback(null, conversations_fetch);
-                        });
-                    }
-                });
+
+                            conversations_fetch.push(conversations[i]);
+                        }
+                        callback(null, conversations_fetch);
+                    });
+                }
+            });
+        }
+
+        conversations_db(function (err, conversations) {
+            conversations_formatted = [];
+            conversations_id_added = [];
+            var is_read = new Map();
+            for (let i = 0; i < conversations.length; i++) {
+                if (i == 0 && conversations[i].user_id == user_id && conversations[i].message != '-#top-secret#-') {
+                    is_read.set(conversations[i].conversation_id, conversations[i].is_read);
+                    conversations_id_added.push(conversations[i].conversation_id);
+                }
+
+                if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i + 1].user_id == user_id && conversations[i + 1].message != '-#top-secret#-') {
+                    is_read.set(conversations[i + 1].conversation_id, conversations[i + 1].is_read);
+                    conversations_id_added.push(conversations[i].conversation_id);
+                }
             }
 
-            conversations_db(function (err, conversations) {
-                conversations_formatted = [];
-                conversations_id_added = [];
-                var is_read = new Map();
-                for (let i = 0; i < conversations.length; i++) {
-                    if (i == 0 && conversations[i].user_id == user_id && conversations[i].message != '-#top-secret#-') {
-                        is_read.set(conversations[i].conversation_id, conversations[i].is_read);
-                        conversations_id_added.push(conversations[i].conversation_id);
-                    }
+            conversations_id_added = [];
+            for (let i = 0; i < conversations.length; i++) {
+                if (i == 0) {
+                    console.log('is_read status >>>>>>>>>>>>');
+                    console.log(is_read);
+                    console.log(is_read.get(conversations[i].conversation_id))
 
-                    if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id) && conversations[i + 1].user_id == user_id && conversations[i + 1].message != '-#top-secret#-') {
-                        is_read.set(conversations[i + 1].conversation_id, conversations[i + 1].is_read);
-                        conversations_id_added.push(conversations[i].conversation_id);
+                    if (is_read.size == 0) {
+                        conversations[i].is_read = 1;
+                    } else {
+                        conversations[i].is_read = is_read.get(conversations[i].conversation_id);
                     }
+                    conversations_formatted.push(conversations[i]);
+                    conversations_id_added.push(conversations[i].conversation_id);
                 }
 
-                conversations_id_added = [];
-                for (let i = 0; i < conversations.length; i++) {
-                    if (i == 0) {
-                        console.log('is_read status >>>>>>>>>>>>');
-                        console.log(is_read);
-                        console.log(is_read.get(conversations[i].conversation_id))
-
-                        if (is_read.size == 0) {
-                            conversations[i].is_read = 1;
-                        } else {
-                            conversations[i].is_read = is_read.get(conversations[i].conversation_id);
-                        }
-                        conversations_formatted.push(conversations[i]);
-                        conversations_id_added.push(conversations[i].conversation_id);
+                if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
+                    console.log('is_read status >>>>>>>>>>>>');
+                    console.log(is_read);
+                    console.log(is_read.get(conversations[i].conversation_id))
+                    if (is_read.size == 0) {
+                        conversations[i + 1].is_read = 1;
+                    } else {
+                        conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
                     }
-
-                    if ((i + 1 < conversations.length) && !conversations_id_added.includes(conversations[i + 1].conversation_id)) {
-                        console.log('is_read status >>>>>>>>>>>>');
-                        console.log(is_read);
-                        console.log(is_read.get(conversations[i].conversation_id))
-                        if (is_read.size == 0) {
-                            conversations[i + 1].is_read = 1;
-                        } else {
-                            conversations[i + 1].is_read = is_read.get(conversations[i + 1].conversation_id);
-                        }
-                        conversations_formatted.push(conversations[i + 1]);
-                        conversations_id_added.push(conversations[i + 1].conversation_id);
-                    }
+                    conversations_formatted.push(conversations[i + 1]);
+                    conversations_id_added.push(conversations[i + 1].conversation_id);
                 }
+            }
 
-                for (let index = 0; index < conversations_formatted.length; index++) {
-                    if (typeof conversations_formatted.is_read === 'undefined') {
-                        conversations_formatted[index].is_read = 1;
-                    }
+            for (let index = 0; index < conversations_formatted.length; index++) {
+                if (typeof conversations_formatted.is_read === 'undefined') {
+                    conversations_formatted[index].is_read = 1;
                 }
+            }
 
-                var string = JSON.stringify(conversations_formatted);
-                var json = JSON.parse(string);
-                console.log('conversations-user-id-' + user_id + ' >>');
-                console.log(json);
-                io.emit('conversations-user-id-' + user_id, json);
+            var string = JSON.stringify(conversations_formatted);
+            var json = JSON.parse(string);
+            console.log('conversations-user-id-' + user_id + ' >>');
+            console.log(json);
+            io.emit('conversations-user-id-' + user_id, json);
+            if (typeof insert_id !== 'undefined') {
                 io.emit('conversation-created-user-id-' + user_id, { conversation_id: insert_id });
-            });
-        }).join(" ");
-    }, 300);
-
+            }
+        });
+    }).join(" ");
 }
 
 function add_users_to_conversation(data) {
