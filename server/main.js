@@ -715,13 +715,9 @@ function get_conversations(data) {
     var conversations_fetch = [];
     var conversations_db = function (callback) {
         var conversations_sql = `SELECT 
-                    conversations.id as conversation_id
-                    FROM conversations 
-                    INNER JOIN messages on conversations.id = messages.conversation_id
-                    INNER JOIN users_has_conversations on users_has_conversations.user_id = messages.user_id
-                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
-                    where jhi_user.id = '${data.user_id}'
-                    group by conversations.id;`;
+                    conversation_id
+                    FROM users_has_conversations 
+                    where user_id = '${data.user_id}';`;
 
         con.query(conversations_sql, function (err, conversations, fields) {
             if (conversations.length == 0) {
