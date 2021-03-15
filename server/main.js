@@ -113,6 +113,10 @@ io.on('connection', function (socket) {
         add_users_to_conversation(data)
     });
 
+    socket.on('del-users-from-conversation', function (data) {
+        del_users_from_conversation(data)
+    });
+
     socket.on('get-messages-conversation', function (data) {
         get_messages(data);
     });
@@ -456,6 +460,24 @@ function add_users_to_conversation(data) {
         }
         io.emit('users-added-to-conversation-' + data.conversation_id, { conversation_id: data.conversation_id });
 
+    });
+}
+
+function del_users_from_conversation(data) {
+    con.connect(function (err) {
+        console.log('del-users-from-converstaion params >>');
+        console.log(data);
+        for (let i = 0; i < data.users_id.length; i++) {
+            var sql = `DELETE FROM users_has_conversations WHERE user_id='${data.users_id[i]}' and conversation_id= '${data.conversation_id}'`;
+            con.query(sql, function (err, result) {
+                console.log('err >>');
+                console.log(err);
+            });
+
+            console.log(data.users_id[i]);
+            get_conversations({ user_id: data.users_id[i] });
+
+        }
     });
 }
 
