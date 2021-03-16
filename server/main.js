@@ -222,8 +222,8 @@ function insert_group(group) {
                     });
 
                     var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
-                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', '3', '${dt}')`;
+                    var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date, metadata) 
+                    VALUES (${user_id}, '${insert_id}', '-#top-secret#-', 0, '', '3', '${dt}', '')`;
                     con.query(sql, function (err, result) {
                         console.log(err);
 
@@ -486,8 +486,8 @@ function insert_message(message) {
 
         insert_id = 0;
         var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date) 
-                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type}, '${dt}')`;
+        var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date, metadata) 
+                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type}, '${dt}', '${message.metadata}')`;
         con.query(sql, function (err, result) {
             console.log("error >>");
             console.log(err);
@@ -664,6 +664,7 @@ async function get_messages_query(data) {
                     messages.text as message,
                     messages.date,
                     messages.media_url,
+                    messages.metadata,
                     messages.type,
                     messages.state,
                     messages.state as from_user,
