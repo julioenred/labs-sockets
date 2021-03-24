@@ -80,7 +80,10 @@ function uploadFile(source, targetName, res) {
 app.get('/attachments', function (req, res) {
 
     console.log(req.query.conversation_id);
-    var attachments_conversation_sql = `SELECT media_url
+    var attachments_conversation_sql = `SELECT 
+                                        media_url,
+                                        metadata,
+                                        type
                                         FROM messages
                                         WHERE conversation_id = ${req.query.conversation_id} and media_url <> '';`;
 
