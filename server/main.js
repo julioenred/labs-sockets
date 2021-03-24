@@ -79,6 +79,7 @@ function uploadFile(source, targetName, res) {
 
 app.get('/attachments', function (req, res) {
 
+    console.log('atta >>');
     console.log(req.query.conversation_id);
     var attachments_conversation_sql = `SELECT 
                                         media_url,
@@ -706,31 +707,47 @@ async function get_messages_query(data) {
                 return users_id.indexOf(item) === index;
             });
 
-            var data_map = new Map();
-            data_map.set('messages', messages);
-            data_map.set('users_id', users_id_filtered);
+            var sql = `SELECT 
+                    user_id
+                    FROM users_has_conversations 
+                    where conversation_id = '${data.conversation_id}';`;
+            con.query(sql, function (err, users, fields) {
+                console.log('users >>');
+                console.log(users);
 
-            var sql = `UPDATE 
+                users_id_in_group = [];
+                for (let index = 0; index < users.length; index++) {
+                    users_id_in_group[index] = users[index].user_id;
+                }
+
+                var data_map = new Map();
+                data_map.set('messages', messages);
+                data_map.set('users_id', users_id_in_group);
+
+                var sql = `UPDATE 
                     users_has_conversations
                     SET is_read=1
                     where users_has_conversations.conversation_id = '${data.conversation_id}' and 
                     users_has_conversations.user_id = '${user_id}';`;
-            con.query(sql, function (err, result) {
-                console.log("error set read conversation >>");
-                console.log(err);
+                con.query(sql, function (err, result) {
+                    console.log("error set read conversation >>");
+                    console.log(err);
+                });
+
+                var sql = `UPDATE users_read_messages
+                INNER JOIN messages on messages.id = users_read_messages.message_id
+                INNER JOIN conversations on conversations.id = messages.conversation_id
+                SET users_read_messages.is_read = 2
+                where conversations.id = '${data.conversation_id}' and users_read_messages.user_id = '${user_id}';`;
+                con.query(sql, function (err, result) {
+                    console.log("error set read message >>");
+                    console.log(err);
+                });
+
+                resolve(data_map);
             });
 
-            var sql = `UPDATE users_read_messages
-            INNER JOIN messages on messages.id = users_read_messages.message_id
-            INNER JOIN conversations on conversations.id = messages.conversation_id
-            SET users_read_messages.is_read = 2
-            where conversations.id = '${data.conversation_id}' and users_read_messages.user_id = '${user_id}';`;
-            con.query(sql, function (err, result) {
-                console.log("error set read message >>");
-                console.log(err);
-            });
 
-            resolve(data_map);
         });
     })
 }
