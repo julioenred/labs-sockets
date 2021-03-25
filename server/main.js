@@ -628,14 +628,6 @@ async function get_messages_state(data) {
         const RECEIVED = 1;
         const READ = 2;
 
-        if (typeof data.user_id_request !== 'undefined') {
-            user_id = data.user_id_request;
-        }
-
-        if (typeof data.creator_user_id !== 'undefined') {
-            user_id = data.creator_user_id;
-        }
-
         var messages_read_sql = `SELECT 
                     messages.id as message_id,
                     users_read_messages.user_id as user_id_read,
