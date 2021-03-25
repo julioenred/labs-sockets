@@ -427,9 +427,6 @@ function get_users_conversations_and_emit_conversations(users_id) {
             console.log('conversations-user-id-' + user_id + ' >>');
             console.log(json);
             io.emit('conversations-user-id-' + user_id, json);
-            if (typeof insert_id !== 'undefined') {
-                io.emit('conversation-created-user-id-' + user_id, { conversation_id: insert_id });
-            }
         });
     }).join(" ");
 }
