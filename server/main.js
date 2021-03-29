@@ -110,7 +110,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('get-conversations-user', function (data) {
-        get_conversations(data);
+        // get_conversations(data);
         get_conversations_v2(data);
     });
 
@@ -538,7 +538,7 @@ function insert_message(message) {
                     console.log('for >>');
                     console.log(result.length);
                     console.log(index);
-                    // get_conversations(result[index]);
+                    get_conversations_v2(result[index]);
                     get_conversations_not_read(result[index]);
                     setTimeout(() => { }, 400);
                 }
@@ -927,7 +927,7 @@ function get_conversations_v2(data) {
         console.log('get-conversations-function-v2 >>');
         console.log('conversations-user-id-' + data.user_id + ' >>');
         console.log(json);
-        // io.emit('conversations-user-id-' + data.user_id, json);
+        io.emit('conversations-user-id-' + data.user_id, json);
     });
 }
 
