@@ -922,6 +922,10 @@ function get_conversations_v2(data) {
             }
         }
 
+        conversations.sort(function (a, b) {
+            return (b.message_id - a.message_id);
+        });
+
         var string = JSON.stringify(conversations);
         var json = JSON.parse(string);
         console.log('get-conversations-function-v2 >>');
