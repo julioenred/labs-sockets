@@ -424,6 +424,7 @@ function get_users_conversations_and_emit_conversations(users_id) {
 
             var string = JSON.stringify(conversations_formatted);
             var json = JSON.parse(string);
+            console.log('get-conversations-users-and-emit-function >>');
             console.log('conversations-user-id-' + user_id + ' >>');
             console.log(json);
             io.emit('conversations-user-id-' + user_id, json);
@@ -874,6 +875,7 @@ function get_conversations(data) {
 
             var string = JSON.stringify(conversations_formatted);
             var json = JSON.parse(string);
+            console.log('get-conversations-function >>');
             console.log('conversations-user-id-' + data.user_id + ' >>');
             console.log(json);
             io.emit('conversations-user-id-' + data.user_id, json);
