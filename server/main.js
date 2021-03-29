@@ -537,7 +537,7 @@ function insert_message(message) {
                     console.log('for >>');
                     console.log(result.length);
                     console.log(index);
-                    get_conversations(result[index]);
+                    // get_conversations(result[index]);
                     get_conversations_not_read(result[index]);
                     setTimeout(() => { }, 400);
                 }
