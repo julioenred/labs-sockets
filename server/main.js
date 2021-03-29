@@ -111,6 +111,7 @@ io.on('connection', function (socket) {
 
     socket.on('get-conversations-user', function (data) {
         get_conversations(data);
+        get_conversations_v2(data);
     });
 
     socket.on('add-users-to-conversation', function (data) {
@@ -874,6 +875,59 @@ function get_conversations(data) {
         });
 
 
+    });
+}
+
+function get_conversations_v2(data) {
+    var messages_read_sql = `SELECT
+                    messages.conversation_id,
+                    conversations.other_user_id,
+                    conversations.creator_user_id,
+                    messages.media_url,
+                    messages.user_id,
+                    messages.id as message_id,
+                    conversations.name as group_name,
+                    messages.text as message,
+                    messages.date,
+                    users_has_conversations.is_read
+                    FROM messages
+                    INNER JOIN users_has_conversations on messages.conversation_id = users_has_conversations.conversation_id
+                    INNER JOIN conversations on messages.conversation_id = conversations.id
+                    where users_has_conversations.user_id='${data.user_id}'
+                    order by messages.conversation_id DESC, messages.id DESC;`;
+
+    con.query(messages_read_sql, function (err, messages, fields) {
+
+        var conversations = [];
+        var current_conversation = 0;
+        for (let index = 0; index < messages.length; index++) {
+            if (index == 0) {
+                conversations.push(messages[index]);
+                current_conversation = messages[index].conversation_id;
+                if (messages[index].creator_user_id != data.user_id) {
+                    messages[index].from_user = true;
+                } else {
+                    messages[index].from_user = false;
+                }
+            }
+
+            if (index != 0 && messages[index].conversation_id != current_conversation) {
+                conversations.push(messages[index]);
+                current_conversation = messages[index].conversation_id;
+                if (messages[index].creator_user_id != data.user_id) {
+                    messages[index].from_user = true;
+                } else {
+                    messages[index].from_user = false;
+                }
+            }
+        }
+
+        var string = JSON.stringify(conversations);
+        var json = JSON.parse(string);
+        console.log('get-conversations-function-v2 >>');
+        console.log('conversations-user-id-' + data.user_id + ' >>');
+        console.log(json);
+        // io.emit('conversations-user-id-' + data.user_id, json);
     });
 }
 
