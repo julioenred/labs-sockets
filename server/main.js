@@ -797,17 +797,6 @@ function get_conversations(data) {
                 con.query(conversations_sql, function (err, conversations, fields) {
 
                     for (var i = 0; i < conversations.length; i++) {
-                        // if (conversations[i].creator_user_id != data.user_id) {
-                        //     conversations[i].from_user = true;
-                        //     var user_id = conversations[i].user_id;
-                        //     if (conversations[i].other_user_id !== null) {
-                        //         conversations[i].user_id = conversations[i].other_user_id;
-                        //     }
-                        //     conversations[i].other_user_id = user_id;
-                        // } else {
-                        //     conversations[i].from_user = false;
-                        // }
-
                         conversations_fetch.push(conversations[i]);
                     }
                     callback(null, conversations_fetch);
@@ -817,6 +806,8 @@ function get_conversations(data) {
     }
 
     conversations_db(function (err, conversations) {
+        console.log('conversations_fetch >>');
+        console.log(conversations);
         conversations_formatted = [];
         conversations_id_added = [];
         var is_read = new Map();
