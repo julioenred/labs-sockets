@@ -704,7 +704,7 @@ async function get_messages_state_v2(data) {
                     previus_message_id = messages[i - 1].message_id;
                 }
 
-                if (previus_message_id != messages[i].message_id) {
+                if (i != 0 && previus_message_id != messages[i].message_id) {
                     is_read.set(messages[i].message_id, READ);
                 }
 
