@@ -567,7 +567,7 @@ function get_messages(data) {
             }
 
             setTimeout(() => {
-                get_messages_state(data).then(function (is_read) {
+                get_messages_state_v2(data).then(function (is_read) {
                     console.log('is_read >>');
                     console.log(is_read);
                     messages_formatted = [];
@@ -657,6 +657,52 @@ async function get_messages_state(data) {
 
                 if (i < messages.length - 1 && messages[i].message_id != messages[i + 1].message_id) {
                     is_read.set(messages[i + 1].message_id, READ);
+                }
+            }
+
+            resolve(is_read);
+        });
+    })
+}
+
+async function get_messages_state_v2(data) {
+    return new Promise(function (resolve, reject) {
+        const SENDED = 0;
+        const RECEIVED = 1;
+        const READ = 2;
+
+        console.log('get-messages-state-user-id >>');
+        console.log(user_id);
+
+        var messages_read_sql = `SELECT 
+                    messages.id as message_id,
+                    users_read_messages.user_id as user_id_read,
+                    users_read_messages.is_read as state
+                    FROM messages 
+                    INNER JOIN conversations on conversations.id = messages.conversation_id
+                    INNER JOIN jhi_user on messages.user_id = jhi_user.id
+                    INNER JOIN users_read_messages on messages.id = users_read_messages.message_id
+                    where conversations.id = '${data.conversation_id}'
+                    order by messages.id DESC;`;
+
+        con.query(messages_read_sql, function (err, messages, fields) {
+            var is_read = new Map();
+            var previus_message_id = 0;
+            for (let i = 0; i < messages.length; i++) {
+                if (i == 0) {
+                    is_read.set(messages[i].message_id, READ);
+                }
+
+                if (i != 0) {
+                    previus_message_id = messages[i - 1].message_id;
+                }
+
+                if (previus_message_id != messages[i].message_id) {
+                    is_read.set(messages[i].message_id, READ);
+                }
+
+                if (previus_message_id == messages[i].message_id && messages[i].state != READ) {
+                    is_read.set(messages[i].message_id, RECEIVED);
                 }
             }
 
