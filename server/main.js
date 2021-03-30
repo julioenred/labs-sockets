@@ -886,7 +886,7 @@ function get_conversations_v2(data) {
                     messages.conversation_id,
                     conversations.other_user_id,
                     conversations.creator_user_id,
-                    messages.media_url,
+                    conversations.media_url,
                     messages.user_id,
                     messages.id as message_id,
                     conversations.name as group_name,
