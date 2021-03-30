@@ -688,6 +688,9 @@ async function get_messages_state_v2(data) {
         con.query(messages_read_sql, function (err, messages, fields) {
             var is_read = new Map();
             var previus_message_id = 0;
+            console.log('messages previous is read >>');
+            console.log(messages);
+
             for (let i = 0; i < messages.length; i++) {
                 if (i == 0) {
                     if (messages[i].state != READ) {
