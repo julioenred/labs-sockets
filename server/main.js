@@ -708,6 +708,9 @@ async function get_messages_state_v2(data) {
                 if (previus_message_id == messages[i].message_id && messages[i].state != READ) {
                     is_read.set(messages[i].message_id, RECEIVED);
                 }
+
+                console.log('is_read for >>');
+                console.log(is_read);
             }
 
             resolve(is_read);
