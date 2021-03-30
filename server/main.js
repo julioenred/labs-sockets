@@ -690,7 +690,11 @@ async function get_messages_state_v2(data) {
             var previus_message_id = 0;
             for (let i = 0; i < messages.length; i++) {
                 if (i == 0) {
-                    is_read.set(messages[i].message_id, READ);
+                    if (messages[i].state != READ) {
+                        is_read.set(messages[i].message_id, RECEIVED);
+                    } else {
+                        is_read.set(messages[i].message_id, READ);
+                    }
                 }
 
                 if (i != 0) {
