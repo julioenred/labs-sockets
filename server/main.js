@@ -630,6 +630,9 @@ async function get_messages_state(data) {
         const RECEIVED = 1;
         const READ = 2;
 
+        console.log('get-messages-state-user-id >>');
+        console.log(user_id);
+
         var messages_read_sql = `SELECT 
                     messages.id as message_id,
                     users_read_messages.user_id as user_id_read,
