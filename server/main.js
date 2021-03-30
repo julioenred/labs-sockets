@@ -187,8 +187,10 @@ io.on('connection', function (socket) {
                         if (!data.get('is_created')) {
                             console.log('conversacion creada');
                             insert_group(group);
+                        } else {
+                            io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
                         }
-                        io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: data.get('conversation_id') });
+
                     });
                 } else {
                     console.log('recovery-conversation-created-emit >>');
@@ -286,6 +288,7 @@ function insert_group(group) {
         console.log(insert_id);
         console.log('users_id >>');
         console.log(group.users_id);
+        io.emit('conversation-created-user-id-' + group.creator_user_id, { conversation_id: insert_id });
         get_users_conversations_and_emit_conversations(group.users_id);
     }, 300);
 
