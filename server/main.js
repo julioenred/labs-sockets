@@ -37,6 +37,21 @@ const s3 = new AWS.S3();
 
 app.use(express.static('public'));
 
+app.post('/upload_media_test', function (req, res, next) {
+    upload.single('media')(req, res, function (error) {
+        if (error) {
+            console.log(`upload.single error: ${error}`);
+
+        }
+        // console.log(req.file);
+        var date = Date.now();
+        var filename = date + '-' + req.file.filename;
+        uploadFile(req.file.path, filename, res);
+
+        res.status(200).send({ media_url: process.env.URL_BASE_MEDIA + filename });
+    })
+});
+
 app.post('/upload_media', upload.single('media'), function (req, res) {
 
     // console.log(req.file);
