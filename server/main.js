@@ -39,6 +39,7 @@ app.use(express.static('public'));
 
 app.post('/upload_media_test', function (req, res, next) {
     upload.single('media')(req, res, function (error) {
+        console.log(req.file);
         if (error) {
             console.log(`upload.single error: ${error}`);
 
