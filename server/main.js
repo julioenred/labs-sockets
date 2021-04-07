@@ -39,6 +39,7 @@ app.use(express.static('public'));
 
 app.post('/upload_media_test', function (req, res, next) {
     upload.single('media')(req, res, function (error) {
+        console.log('media file >>');
         console.log(req.file);
         if (error) {
             console.log(`upload.single error: ${error}`);
@@ -54,7 +55,8 @@ app.post('/upload_media_test', function (req, res, next) {
 });
 
 app.post('/upload_media', upload.single('media'), function (req, res) {
-
+    console.log('media file >>');
+    console.log(req.file);
     // console.log(req.file);
     var date = Date.now();
     var filename = date + '-' + req.file.filename;
