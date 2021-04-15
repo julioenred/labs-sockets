@@ -510,10 +510,8 @@ function insert_message(message) {
 
         insert_id = 0;
         var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        let message_buff = Buffer.form(message.message, "utf8");
-        let base64_message = message_buff.toString("base64");
         var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date, metadata) 
-                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${base64_message}', 0, '${message.media_url}', ${message.type}, '${dt}', '${message.metadata}')`;
+                    VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type}, '${dt}', '${message.metadata}')`;
         con.query(sql, function (err, result) {
             console.log("error >>");
             console.log(err);
@@ -774,8 +772,6 @@ async function get_messages_query(data) {
 
             var users_id = [];
             messages.map(function (message, index) {
-                let base64_message = Buffer.from(message.message, "base64");
-                message.message = base64_message.toString("utf8");
                 users_id.push(message.user_id);
                 if (message.user_id == user_id) {
                     message.from_user = false
