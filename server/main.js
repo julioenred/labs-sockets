@@ -510,6 +510,8 @@ function insert_message(message) {
 
         insert_id = 0;
         var dt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        console.log('emoji >>');
+        console.log(message.message);
         var sql = `INSERT INTO messages (user_id, conversation_id, text, state, media_url, type, date, metadata) 
                     VALUES (${message.creator_user_id}, '${message.conversation_id}', '${message.message}', 0, '${message.media_url}', ${message.type}, '${dt}', '${message.metadata}')`;
         con.query(sql, function (err, result) {
