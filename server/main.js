@@ -359,7 +359,7 @@ function get_users_conversations_and_emit_conversations(users_id) {
                         conversations.other_user_id,
                         conversations.creator_user_id,
                         messages.user_id,
-                        conversations.id as img,
+                        conversations.media_url,
                         jhi_user.name as user_name,
                         jhi_user.name as from_user,
                         conversations.name as group_name,
